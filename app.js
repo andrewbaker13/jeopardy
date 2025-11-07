@@ -81,6 +81,7 @@ const $uploadTipsButton = document.getElementById('uploadTipsButton');
 const $uploadTipsModal = document.getElementById('upload-tips-modal');
 const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
 const $newGameButton = document.getElementById('newGameButton');
+const $judgeModeControls = document.getElementById('judge-mode-controls');
 
 
 // --- CSV TEMPLATE ---
@@ -1160,11 +1161,47 @@ const scoreFinalJeopardy = (teamIndex, isCorrect) => {
  * Starts the game in Judge Mode (no scores, just the board).
  */
 const startJudgeMode = () => {
-    // Hide all standard game UI
-    $setupScreen.classList.add('hidden');
     $gameControlsContainer.classList.add('hidden');
+    $judgeModeControls.classList.remove('hidden');
+    $judgeModeControls.innerHTML = ''; // Clear previous buttons
+
+    // If there are two rounds, create toggle buttons
+    if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
+        const round1Button = document.createElement('button');
+        round1Button.id = 'judge-round-1';
+        round1Button.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg';
+        round1Button.textContent = 'View Round 1';
+        round1Button.onclick = () => switchJudgeRound(1);
+
+        const round2Button = document.createElement('button');
+        round2Button.id = 'judge-round-2';
+        round2Button.className = 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg';
+        round2Button.textContent = 'View Round 2';
+        round2Button.onclick = () => switchJudgeRound(2);
+
+        $judgeModeControls.appendChild(round1Button);
+        $judgeModeControls.appendChild(round2Button);
+    }
 
     renderBoard(true); // Render the board in judge mode
+};
+
+/**
+ * Switches the board view in Judge Mode between rounds.
+ * @param {number} roundNum - The round number to switch to (1 or 2).
+ */
+const switchJudgeRound = (roundNum) => {
+    CLUES = roundNum === 1 ? ROUND_1_CLUES : ROUND_2_CLUES;
+    CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
+    renderBoard(true);
+
+    // Update button styles to show which is active
+    const r1Btn = document.getElementById('judge-round-1');
+    const r2Btn = document.getElementById('judge-round-2');
+    if (r1Btn && r2Btn) {
+        r1Btn.className = `font-bold py-2 px-4 rounded-lg ${roundNum === 1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-700'}`;
+        r2Btn.className = `font-bold py-2 px-4 rounded-lg ${roundNum === 2 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-700'}`;
+    }
 };
 
 // --- ADVANCED EDIT (Rename teams + edit scores) ---
