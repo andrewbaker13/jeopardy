@@ -1,0 +1,59 @@
+GameTitle,"Customize Your Game Name in CSV",,,,,,,
+JudgeCode,112233,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
+CATEGORY_1,200,The first text-only clue for Category 1,"What is the answer for 200?",text,,No
+CATEGORY_1,400,This clue will show an image; ensure the MediaURL is a direct link.,"What is the answer for 400?",image,https://placehold.co/400x200/5cb85c/fff?text=PLACE+DIRECT+IMAGE+LINK+HERE,No
+CATEGORY_1,600,The third clue,"What is the answer for 600?",text,,No
+CATEGORY_1,800,This clue will show a video. Use the YouTube or Vimeo EMBED URL.,"What is the answer for 800?",video,https://www.youtube.com/embed/T12SKqPIUlM?si=IIuxSAfcwl5jfTZ8,No
+CATEGORY_1,1000,The final clue for Category 1,"What is the answer for 1000?",video, https://youtu.be/O-3Mlj3MQ_Q?si=qekU_mHDYLaICTA4,No
+CATEGORY_2,200,Clue text for Category 2,"What is the answer for Category 2?",text,,No
+CATEGORY_2,400,Clue text for Category 2,"What is the answer for Category 2?",text,,No
+CATEGORY_2,600,Clue text for Category 2,"What is the answer for Category 2?",text,,No
+CATEGORY_2,800,Clue text for Category 2,"What is the answer for Category 2?",text,,Yes
+CATEGORY_2,1000,Clue text for Category 2,"What is the answer for Category 2?",text,,No
+CATEGORY_3,200,Clue text for Category 3,"What is the answer for Category 3?",text,,No
+CATEGORY_3,400,Clue text for Category 3,"What is the answer for Category 3?",text,,No
+CATEGORY_3,600,Clue text for Category 3,"What is the answer for Category 3?",text,,No
+CATEGORY_3,800,Clue text for Category 3,"What is the answer for Category 3?",text,,No
+CATEGORY_3,1000,Clue text for Category 3,"What is the answer for Category 3?",text,,No
+CATEGORY_4,200,Clue text for Category 4,"What is the answer for Category 4?",text,,No
+CATEGORY_4,400,Clue text for Category 4,"What is the answer for Category 4?",text,,No
+CATEGORY_4,600,Clue text for Category 4,"What is the answer for Category 4?",text,,No
+CATEGORY_4,800,Clue text for Category 4,"What is the answer for Category 4?",text,,No
+CATEGORY_4,1000,Clue text for Category 4,"What is the answer for Category 4?",text,,No
+CATEGORY_5,200,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+CATEGORY_5,400,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+CATEGORY_5,600,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+CATEGORY_5,800,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+CATEGORY_5,1000,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+# --- INSTRUCTIONS START BELOW THIS LINE ---
+# IMPORTANT: Lines starting with a '#' are ignored by the game and should be used for instructions only.
+#
+# CUSTOM GAME TITLE:
+# The very first row should start with "GameTitle" in the first column, and your desired game title in the second column.
+# Example: GameTitle,"My Awesome History Game",,,,,,,
+#
+# FILE STRUCTURE:
+# 1. This file MUST contain exactly 5 categories, with 5 questions per category (25 total rows).
+# 2. Category names MUST be identical for all 5 rows within that category (e.g., all 5 rows for "HISTORY").
+# 3. Value MUST be 200, 400, 600, 800, and 1000 for each category.
+# 4. To include commas in Clue or Answer text, you MUST enclose the entire cell content in double quotes (e.g., "This answer is, in fact, correct").
+#
+# DAILY DOUBLES:
+# The 'DailyDouble' column determines if a clue is a Daily Double.
+# - Set the value to 'Yes' to make it a Daily Double.
+# - Set the value to 'No' (or leave it blank) for a normal clue.
+# MEDIA INSTRUCTIONS:
+# MediaType can be: 'text' (default), 'image', or 'video'.
+# MediaURL is only required for 'image' or 'video' clues.
+#
+# IMAGES (MediaType: image):
+# Use a publicly accessible, DIRECT URL that ends in an image extension (.jpg, .png, etc.). 
+# Standard Google Drive or Dropbox *sharing* links will usually NOT work.
+#
+# VIDEOS (MediaType: video):
+# You MUST use the **EMBED URL** (the URL found inside the iframe tag when sharing/embedding a video).
+# - YouTube Example: Use https://www.youtube.com/embed/VIDEO_ID_HERE
+#   (youtube-nocookie.com/embed/VIDEO_ID_HERE is usually acceptable too, but some environments
+#    may require the standard youtube.com embed host for origin/auth checks.)
+# - Vimeo Example: Use https://player.vimeo.com/video/VIDEO_ID_HERE

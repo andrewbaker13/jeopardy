@@ -1,0 +1,63 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #1a202c;
+}
+
+/* Classic Jeopardy Blue */
+.jeopardy-blue {
+    background-color: #0d287c;
+    color: white;
+}
+
+.jeopardy-tile {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border: 3px solid #1a202c;
+    /* Inset box shadow for tile depth */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE10+/Edge */
+    user-select: none;
+    /* Standard */
+}
+
+.jeopardy-tile:hover:not(.played) {
+    background-color: #0f309a;
+    transform: scale(1.02);
+}
+
+.played {
+    background-color: #0a1745;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    cursor: default;
+    font-style: italic;
+}
+
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* Style for the custom media display, ensures responsive scaling */
+.media-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.media-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
+.media-container iframe {
+    width: 100%;
+    /* 16:9 Aspect Ratio */
+    aspect-ratio: 16 / 9;
+    border-radius: 0.5rem;
+}

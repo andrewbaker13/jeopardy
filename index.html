@@ -8,65 +8,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Papa Parse (for CSV) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #1a202c; }
-        /* Classic Jeopardy Blue */
-        .jeopardy-blue { background-color: #0d287c; color: white; }
-        .jeopardy-tile {
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            border: 3px solid #1a202c;
-            /* Inset box shadow for tile depth */
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+/Edge */
-            user-select: none; /* Standard */
-        }
-        .jeopardy-tile:hover:not(.played) {
-            background-color: #0f309a;
-            transform: scale(1.02);
-        }
-        .played {
-            background-color: #0a1745;
-            color: rgba(255, 255, 255, 0.3);
-            pointer-events: none;
-            cursor: default;
-            font-style: italic;
-        }
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.85);
-        }
-        /* Style for the custom media display, ensures responsive scaling */
-        .media-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .media-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.5rem;
-        }
-        .media-container iframe {
-            width: 100%;
-            /* 16:9 Aspect Ratio */
-            aspect-ratio: 16 / 9;
-            border-radius: 0.5rem;
-        }
-    </style>
-</head>
+    </head>
 <body class="min-h-screen p-4 sm:p-8">
 
     <div id="app" class="max-w-7xl mx-auto">
-        <h1 class="text-4xl font-extrabold text-yellow-400 mb-6 text-center">Professor Jeopardy!</h1>
+        <h1 id="game-title" class="text-4xl font-extrabold text-yellow-400 mb-6 text-center">Professor Jeopardy!</h1>
         
         <!-- Scoreboard (Always Visible) -->
-        <div id="scoreboard" class="flex flex-wrap justify-center gap-4 mb-8">
+            <div id="scoreboard" class="flex flex-wrap justify-center gap-4 mb-2">
             <!-- Team Score Cards will be injected here -->
         </div>
-        
+
+        <!-- Advanced Edit Modal -->
+        <div id="advanced-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-3xl w-full mx-4 border-2 border-yellow-500">
+                <h3 class="text-2xl font-bold text-yellow-400 mb-4">Advanced Team Editor</h3>
+                <p class="text-sm text-gray-300 mb-4">Edit team names (max 32 chars) and their scores. Click Save to apply.</p>
+                <div id="advanced-edit-list" class="space-y-3 max-h-72 overflow-auto mb-4">
+                    <!-- Team edit rows will be injected here -->
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button id="advancedCancelButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                    <button id="advancedSaveButton" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Double Modal -->
+        <div id="daily-double-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-lg w-full mx-4 border-4 border-yellow-500">
+                <h3 class="text-5xl font-extrabold text-yellow-400 mb-4 text-center animate-pulse">DAILY DOUBLE!</h3>
+                <div class="space-y-4">
+                    <label class="block">
+                        <span class="text-gray-300 font-semibold">1. Select Bidding Team</span>
+                        <select id="dailyDoubleTeamSelect" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600"></select>
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-300 font-semibold">2. Enter Wager</span>
+                        <input type="number" id="dailyDoubleWager" placeholder="Enter wager amount..." min="0" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600" />
+                    </label>
+                    <button id="revealDailyDoubleClue" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg py-3 px-4 rounded-lg transition">Reveal Clue</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Setup Screen -->
         <div id="setup-screen" class="bg-gray-800 p-6 rounded-xl shadow-2xl space-y-4">
             <h2 class="text-2xl font-bold text-white mb-4">Game Setup</h2>
@@ -82,15 +69,16 @@
 
                 <!-- Template Download & Default Load -->
                 <div class="md:col-span-1 space-y-3">
+                    <select id="defaultGameSelect" class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition"></select>
+                    <button id="loadDefaultGameButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Load from Library</button>
                     <button id="downloadTemplate" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Download Template CSV</button>
-                    <button id="loadDefaultGameButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Load Default Marketing Game</button>
                 </div>
             </div>
 
             <!-- Number of Teams -->
             <label class="block">
-                <span class="text-gray-300 font-semibold">2. Number of Teams (2-8)</span>
-                <input type="number" id="numTeams" value="3" min="2" max="8" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 focus:ring-yellow-500 focus:border-yellow-500" />
+                <span class="text-gray-300 font-semibold">2. Number of Teams (2-10)</span>
+                <input type="number" id="numTeams" value="3" min="2" max="10" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 focus:ring-yellow-500 focus:border-yellow-500" />
             </label>
 
             <!-- Load Game State -->
@@ -100,6 +88,12 @@
                 <button id="loadGameButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Load Game State</button>
             </div>
 
+            <!-- Judge Mode -->
+            <div id="judge-mode-container" class="pt-4 border-t border-gray-700 hidden">
+                <h3 class="text-xl text-yellow-400 mb-2">Judge Mode</h3>
+                <button id="judgeModeButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Enter Judge Mode</button>
+            </div>
+
             <button id="startGameButton" class="w-full bg-yellow-600 hover:bg-yellow-700 text-gray-900 font-extrabold text-lg py-3 px-4 rounded-lg transition" disabled>
                 Start Game
             </button>
@@ -107,17 +101,31 @@
             <p id="setup-message" class="text-sm text-red-400 mt-2 hidden">Please upload a valid CSV file, or load a default/saved game.</p>
         </div>
 
+        <!-- Save Game Modal -->
+        <div id="save-game-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-2xl w-full mx-4 border-2 border-yellow-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-yellow-400">Save Game State</h3>
+                    <button id="closeSaveModalButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+                </div>
+                <p class="text-gray-300 text-sm mb-4">
+                    This will generate a long text string that you can use to restore your game from its current position. It saves the questions, scores, and all played tiles.
+                </p>
+                <input type="text" id="saveCodeDisplay" readonly class="w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 text-xs sm:text-sm cursor-pointer" placeholder="Click 'Generate Save Code'"/>
+                <button id="generateSaveCodeButton" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Generate Save Code</button>
+            </div>
+        </div>
+
         <!-- Game Board (Hidden until started) -->
         <div id="game-board" class="hidden grid gap-2" style="grid-template-columns: repeat(var(--num-categories), 1fr);">
             <!-- Categories and Clues will be injected here -->
         </div>
 
-        <!-- Save Code Display (Hidden until game is running) -->
-        <div id="save-state-container" class="hidden mt-8 bg-gray-800 p-4 rounded-xl shadow-inner">
-            <h3 class="text-xl font-bold text-yellow-400 mb-2">Save Game State</h3>
-            <p class="text-gray-400 text-sm mb-3">Copy this code to resume the game later. It contains all scores and played tiles.</p>
-            <input type="text" id="saveCodeDisplay" readonly class="w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 text-xs sm:text-sm cursor-pointer" placeholder="Click 'Generate Save Code'"/>
-            <button id="generateSaveCodeButton" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Generate Save Code</button>
+        <!-- Game Controls (hidden until game starts) -->
+        <div id="game-controls-container" class="hidden mt-8 flex justify-center gap-4">
+            <button id="advancedEditButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Advanced Edit</button>
+            <button id="saveGameButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Save Game</button>
+            <button id="finishGameButton" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg transition">Finish Game</button>
         </div>
 
         <!-- Clue Modal -->
@@ -130,7 +138,7 @@
                     </div>
                     <p id="clue-text" class="text-2xl text-white font-semibold"></p>
                     <p id="clue-answer" class="text-2xl text-green-400 mt-6 border-t border-gray-700 pt-4 hidden">
-                        ANSWER: <span class="font-bold"></span>
+                        CORRECT RESPONSE: <span class="font-bold"></span>
                     </p>
                 </div>
                 
@@ -154,655 +162,33 @@
             </div>
         </div>
 
+        <!-- Final Standings Screen -->
+        <div id="final-standings-screen" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-8 rounded-xl shadow-2xl max-w-2xl w-full mx-4 border-4 border-yellow-500 text-center">
+                <h2 class="text-5xl font-extrabold text-yellow-400 mb-6">Final Standings</h2>
+                <div id="standings-list" class="space-y-4">
+                    <!-- Ranked teams will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Judge Mode Clue Modal -->
+        <div id="judge-clue-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
+            <div class="bg-gray-900 p-8 rounded-xl shadow-2xl max-w-4xl w-full mx-4 border-4 border-gray-500" onclick="event.stopPropagation();">
+                <div id="judge-clue-content" class="text-center mb-6">
+                    <h3 id="judge-clue-value-text" class="text-3xl font-extrabold text-gray-400 mb-4"></h3>
+                    <div id="judge-clue-media" class="media-container my-4">
+                        <!-- Media (Image/Video) will be injected here -->
+                    </div>
+                    <p id="judge-clue-text" class="text-2xl text-white font-semibold"></p>
+                    <p id="judge-clue-answer" class="text-2xl text-green-400 mt-6 border-t border-gray-700 pt-4">
+                        CORRECT RESPONSE: <span class="font-bold"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // --- GLOBAL STATE VARIABLES ---
-        let CLUES = []; // Stores all parsed game data from CSV
-        let CATEGORIES = []; // Array of category names
-        let TEAMS = []; // Array of team objects: [{name: 'Team 1', score: 0}, ...]
-        let BOARD_STATE = []; // Array tracking which clues (by index) have been played (boolean or index of clue)
-        let CURRENT_CLUE_INDEX = -1; // Index of the currently open clue in the CLUES array
-        let PENALIZED_TEAMS = []; // Array of team indices that have received a deduction for the current clue.
-
-        // --- CONSTANTS AND CONFIGURATION ---
-        const CSV_HEADER_MAP = {
-            'category': 'Category',
-            'value': 'Value',
-            'clue': 'Clue',
-            'answer': 'Answer',
-            'mediaType': 'MediaType',
-            'mediaUrl': 'MediaURL'
-        };
-        const MIN_TEAMS = 2;
-        const MAX_TEAMS = 8;
-        
-        // --- DOM REFERENCES ---
-        const $csvFile = document.getElementById('csvFile');
-        const $numTeams = document.getElementById('numTeams');
-        const $startGameButton = document.getElementById('startGameButton');
-        const $setupScreen = document.getElementById('setup-screen');
-        const $gameBoard = document.getElementById('game-board');
-        const $scoreboard = document.getElementById('scoreboard');
-        const $clueModal = document.getElementById('clue-modal');
-        const $clueValueText = document.getElementById('clue-value-text');
-        const $clueText = document.getElementById('clue-text');
-        const $clueAnswer = document.getElementById('clue-answer');
-        const $clueMedia = document.getElementById('clue-media');
-        const $revealAnswerButton = document.getElementById('revealAnswerButton');
-        const $passClueButton = document.getElementById('passClueButton');
-        const $teamScoringButtons = document.getElementById('team-scoring-buttons');
-        const $saveStateContainer = document.getElementById('save-state-container');
-        const $saveCodeDisplay = document.getElementById('saveCodeDisplay');
-        const $generateSaveCodeButton = document.getElementById('generateSaveCodeButton');
-        const $loadCodeInput = document.getElementById('loadCodeInput');
-        const $loadGameButton = document.getElementById('loadGameButton');
-        const $downloadTemplate = document.getElementById('downloadTemplate');
-        const $loadDefaultGameButton = document.getElementById('loadDefaultGameButton');
-        const $setupMessage = document.getElementById('setup-message');
-
-        // --- UPDATED CSV SAMPLE TEMPLATE (25 Rows + Instructions MOVED BELOW) ---
-        const CSV_TEMPLATE = 
-`Category,Value,Clue,Answer,MediaType,MediaURL
-CATEGORY_1,200,The first text-only clue for Category 1,The answer for 200,text,
-CATEGORY_1,400,This clue will show an image; ensure the MediaURL is a direct link.,The answer for 400,image,https://placehold.co/400x200/5cb85c/fff?text=PLACE+DIRECT+IMAGE+LINK+HERE
-CATEGORY_1,600,The third clue,The answer for 600,text,
-CATEGORY_1,800,This clue will show a video. Use the YouTube or Vimeo EMBED URL.,The answer for 800,video,https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ
-CATEGORY_1,1000,The final clue for Category 1,The answer for 1000,text,
-CATEGORY_2,200,Clue text for Category 2,Answer for Category 2,text,
-CATEGORY_2,400,Clue text for Category 2,Answer for Category 2,text,
-CATEGORY_2,600,Clue text for Category 2,Answer for Category 2,text,
-CATEGORY_2,800,Clue text for Category 2,Answer for Category 2,text,
-CATEGORY_2,1000,Clue text for Category 2,Answer for Category 2,text,
-CATEGORY_3,200,Clue text for Category 3,Answer for Category 3,text,
-CATEGORY_3,400,Clue text for Category 3,Answer for Category 3,text,
-CATEGORY_3,600,Clue text for Category 3,Answer for Category 3,text,
-CATEGORY_3,800,Clue text for Category 3,Answer for Category 3,text,
-CATEGORY_3,1000,Clue text for Category 3,Answer for Category 3,text,
-CATEGORY_4,200,Clue text for Category 4,Answer for Category 4,text,
-CATEGORY_4,400,Clue text for Category 4,Answer for Category 4,text,
-CATEGORY_4,600,Clue text for Category 4,Answer for Category 4,text,
-CATEGORY_4,800,Clue text for Category 4,Answer for Category 4,text,
-CATEGORY_4,1000,Clue text for Category 4,Answer for Category 4,text,
-CATEGORY_5,200,Clue text for Category 5,Answer for Category 5,text,
-CATEGORY_5,400,Clue text for Category 5,Answer for Category 5,text,
-CATEGORY_5,600,Clue text for Category 5,Answer for Category 5,text,
-CATEGORY_5,800,Clue text for Category 5,Answer for Category 5,text,
-CATEGORY_5,1000,Clue text for Category 5,Answer for Category 5,text,
-# --- INSTRUCTIONS START BELOW THIS LINE ---
-# IMPORTANT: Lines starting with a '#' are ignored by the game and should be used for instructions only.
-#
-# FILE STRUCTURE:
-# 1. This file MUST contain exactly 5 categories, with 5 questions per category (25 total rows).
-# 2. Category names MUST be identical for all 5 rows within that category (e.g., all 5 rows for "HISTORY").
-# 3. Value MUST be 200, 400, 600, 800, and 1000 for each category.
-# 4. To include commas in Clue or Answer text, you MUST enclose the entire cell content in double quotes (e.g., "This answer is, in fact, correct").
-#
-# MEDIA INSTRUCTIONS:
-# MediaType can be: 'text' (default), 'image', or 'video'.
-# MediaURL is only required for 'image' or 'video' clues.
-#
-# IMAGES (MediaType: image):
-# Use a publicly accessible, DIRECT URL that ends in an image extension (.jpg, .png, etc.). 
-# Standard Google Drive or Dropbox *sharing* links will usually NOT work.
-#
-# VIDEOS (MediaType: video):
-# You MUST use the **EMBED URL** (the URL found inside the iframe tag when sharing/embedding a video).
-# - YouTube Example: Use https://www.youtube-nocookie.com/embed/VIDEO_ID_HERE
-# - Vimeo Example: Use https://player.vimeo.com/video/VIDEO_ID_HERE
-`;
-
-
-        // --- UPDATED DEFAULT GAME DATA (5 Categories, 5 Clues Each = 25 total) ---
-        const DEFAULT_GAME_CSV = `Category,Value,Clue,Answer,MediaType,MediaURL
-SURVEY DESIGN,200,A question where the respondent selects from a predefined list of options.,Close-ended question,text,
-SURVEY DESIGN,400,This type of scale is commonly used to measure agreement or disagreement with a statement.,Likert Scale,text,
-SURVEY DESIGN,600,The phenomenon where survey respondents tend to agree with the question's premise to avoid conflict.,Acquiescence Bias,text,
-SURVEY DESIGN,800,Error resulting from the difference between the sample result and the result of a census.,Sampling Error,text,
-SURVEY DESIGN,1000,A non-probability sampling technique where researchers select members of the population who are conveniently available.,Convenience Sampling,text,
-EXPERIMENTAL DESIGN,200,The variable that is manipulated by the researcher in an experiment.,Independent Variable,text,
-EXPERIMENTAL DESIGN,400,The phenomenon where participants' knowledge of being studied alters their behavior.,Hawthorne Effect,text,
-EXPERIMENTAL DESIGN,600,A design where different groups are exposed to different levels of the independent variable simultaneously.,Between-Subjects Design,text,
-EXPERIMENTAL DESIGN,800,The extent to which the experimental results can be generalized to the real world.,External Validity,text,
-EXPERIMENTAL DESIGN,1000,A technique where neither the participants nor the researchers know who is receiving the treatment.,Double-blind Study,text,
-QUALITATIVE METHODS,200,Small group discussions led by a moderator to explore perceptions, opinions, and beliefs.,Focus Group,text,
-QUALITATIVE METHODS,400,The process of observing and interviewing people in their natural environment or habitat.,Ethnographic Research,text,
-QUALITATIVE METHODS,600,A qualitative technique used to gather insights by following a semi-structured guide with one respondent.,In-depth Interview (IDI),text,
-QUALITATIVE METHODS,800,In qualitative analysis, this is the saturation point where no new information or themes emerge from further data collection.,Thematic Saturation,text,
-QUALITATIVE METHODS,1000,A method used to analyze human communication by systematically counting and categorizing the occurrence of themes or words.,Content Analysis,text,
-DATA ANALYSIS,200,A measure of central tendency representing the most frequently occurring score in a data set.,Mode,text,
-DATA ANALYSIS,400,Statistical technique used to describe the strength and direction of a linear relationship between two variables.,Correlation,text,
-DATA ANALYSIS,600,The statistical method used to test if there is a significant difference between the means of two groups.,T-Test,text,
-DATA ANALYSIS,800,This is the null hypothesis rejection threshold, commonly set at 0.05.,P-Value (or Significance Level),text,
-DATA ANALYSIS,1000,A statistical modeling technique used to predict the value of a dependent variable based on the values of one or more independent variables.,Regression Analysis,text,
-ETHICS & LAW,200,The legal requirement to disclose all research procedures, risks, and benefits to participants before they agree to take part.,Informed Consent,text,
-ETHICS & LAW,400,Protecting a participant's identity by removing all identifying information from the data.,Anonymity,text,
-ETHICS & LAW,600,A body responsible for reviewing and approving research involving human subjects to ensure ethical compliance.,Institutional Review Board (IRB),text,
-ETHICS & LAW,800,The law that restricts the use of personal data by organizations and gives individuals control over their information, often cited in global research.,GDPR (General Data Protection Regulation),text,
-ETHICS & LAW,1000,A deceptive practice in which researchers intentionally omit details about the study's purpose to prevent participant bias.,Concealment,text,`;
-
-
-        // --- UTILITY FUNCTIONS ---
-
-        /**
-         * Closes the clue modal and resets its content.
-         */
-        const closeClueModal = () => {
-            $clueModal.classList.add('hidden');
-            $clueModal.classList.remove('flex');
-            $clueAnswer.classList.add('hidden');
-            $revealAnswerButton.classList.remove('hidden');
-            $clueMedia.innerHTML = ''; // Clear media content
-        };
-
-        /**
-         * Marks a clue as played on the board and updates the state.
-         * @param {number} clueIndex - The index of the clue in the CLUES array.
-         */
-        const markClueAsPlayed = (clueIndex) => {
-            BOARD_STATE[clueIndex] = true;
-            const tile = document.getElementById(`clue-tile-${clueIndex}`);
-            if (tile) {
-                tile.classList.add('played');
-                tile.classList.remove('jeopardy-blue');
-                tile.textContent = ''; // Clear dollar amount
-                tile.onclick = null; // Disable further clicks
-            }
-        };
-
-        /**
-         * Updates the scoreboard display in the DOM.
-         */
-        const updateScoreboard = () => {
-            $scoreboard.innerHTML = '';
-            TEAMS.forEach((team, index) => {
-                const scoreClass = team.score >= 0 ? 'text-green-400' : 'text-red-400';
-                const teamCard = document.createElement('div');
-                // Adjusting grid layout for responsiveness (up to 8 teams)
-                teamCard.className = `p-4 rounded-xl shadow-lg bg-gray-700 w-full sm:w-1/4 lg:w-1/6 flex-grow min-w-[150px]`;
-                teamCard.innerHTML = `
-                    <p class="text-gray-300 font-semibold text-sm">Team ${index + 1}</p>
-                    <p class="text-2xl font-bold ${scoreClass}">${team.score.toLocaleString()}</p>
-                `;
-                $scoreboard.appendChild(teamCard);
-            });
-        };
-
-        /**
-         * Renders the Jeopardy game board grid.
-         */
-        const renderBoard = () => {
-            if (CLUES.length === 0) return;
-
-            $gameBoard.innerHTML = '';
-            $gameBoard.style.setProperty('--num-categories', CATEGORIES.length);
-            
-            const numCluesPerCategory = CLUES.length / CATEGORIES.length;
-
-            // 1. Create Category Headers
-            CATEGORIES.forEach(category => {
-                const header = document.createElement('div');
-                header.className = 'jeopardy-blue text-center p-3 font-extrabold text-xl rounded-lg shadow-lg uppercase tracking-wide';
-                header.textContent = category;
-                $gameBoard.appendChild(header);
-            });
-
-            // 2. Create Clue Tiles (row by row, category by category)
-            for (let i = 0; i < numCluesPerCategory; i++) {
-                CATEGORIES.forEach((category, catIndex) => {
-                    // Calculate the correct index for a column-major fill
-                    const clueIndex = (catIndex * numCluesPerCategory) + i;
-                    
-                    // Check if clue index exists (safety check)
-                    if (!CLUES[clueIndex]) {
-                        console.error(`Missing clue at index ${clueIndex} (Cat ${catIndex}, Row ${i})`);
-                        return;
-                    }
-
-                    const clue = CLUES[clueIndex];
-
-                    const tile = document.createElement('div');
-                    tile.id = `clue-tile-${clueIndex}`;
-                    tile.className = 'jeopardy-tile jeopardy-blue text-center p-4 font-black text-3xl rounded-lg';
-                    // Ensure Value is a number before formatting
-                    tile.textContent = `$${Number(clue.Value).toLocaleString()}`;
-
-                    if (BOARD_STATE[clueIndex]) {
-                        tile.classList.add('played');
-                        tile.classList.remove('jeopardy-blue');
-                        tile.textContent = '';
-                        tile.onclick = null; // Disable future clicks
-                    } else {
-                        tile.onclick = () => openClue(clueIndex);
-                    }
-                    $gameBoard.appendChild(tile);
-                });
-            }
-
-            $gameBoard.classList.remove('hidden');
-        };
-        
-        /**
-         * Renders the dynamic team scoring buttons in the clue modal.
-         * This is called when the clue opens OR when a penalty is applied.
-         */
-        const renderScoringButtons = () => {
-            $teamScoringButtons.innerHTML = '';
-            
-            // Safety check
-            if (CURRENT_CLUE_INDEX === -1) return;
-            
-            const value = Number(CLUES[CURRENT_CLUE_INDEX].Value);
-
-            TEAMS.forEach((team, index) => {
-                const teamName = `Team ${index + 1}`;
-                const isPenalized = PENALIZED_TEAMS.includes(index);
-                
-                // Correct Button (Always available until clue is closed by a correct answer or pass)
-                const correctButton = document.createElement('button');
-                correctButton.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition shadow-md text-sm sm:text-base';
-                correctButton.textContent = `${teamName} Correct (+${value})`;
-                correctButton.onclick = () => handleScore('correct', index);
-
-                // Incorrect Button (Disabled if team is already penalized for this clue)
-                const incorrectButton = document.createElement('button');
-                // Use a slightly different style when disabled
-                incorrectButton.className = isPenalized
-                    ? 'bg-gray-500 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-md text-sm sm:text-base cursor-not-allowed'
-                    : 'bg-yellow-600 hover:bg-yellow-700 text-gray-900 font-bold py-2 px-4 rounded-lg transition shadow-md text-sm sm:text-base';
-                
-                incorrectButton.textContent = `${teamName} Incorrect (-${value})`;
-                incorrectButton.onclick = () => handleScore('incorrect', index);
-                incorrectButton.disabled = isPenalized;
-
-                $teamScoringButtons.appendChild(correctButton);
-                $teamScoringButtons.appendChild(incorrectButton);
-            });
-        };
-
-        /**
-         * Handles point adjustments for teams.
-         * @param {string} action - 'correct' or 'incorrect'.
-         * @param {number} teamIndex - The index of the team.
-         */
-        const handleScore = (action, teamIndex) => {
-            const clue = CLUES[CURRENT_CLUE_INDEX];
-            // Ensure value is a number, handling potential parsing errors
-            const value = parseInt(clue.Value);
-
-            if (isNaN(value) || value <= 0) {
-                console.error("Invalid clue value:", clue.Value);
-                return;
-            }
-
-            if (action === 'correct') {
-                // CORRECT: Closes the clue, marks as played, and applies points.
-                TEAMS[teamIndex].score += value;
-                updateScoreboard();
-                markClueAsPlayed(CURRENT_CLUE_INDEX);
-                closeClueModal(); 
-                CURRENT_CLUE_INDEX = -1;
-                PENALIZED_TEAMS = []; // Reset penalties globally
-            } else if (action === 'incorrect') {
-                // INCORRECT: Keeps the clue open, applies penalty once.
-                
-                // Prevent re-penalizing if the team is already on the penalized list
-                if (PENALIZED_TEAMS.includes(teamIndex)) return; 
-                
-                TEAMS[teamIndex].score -= value;
-                
-                // Track the penalty
-                PENALIZED_TEAMS.push(teamIndex);
-                
-                updateScoreboard();
-                renderScoringButtons(); // Rerender to disable the team's 'Incorrect' button
-                
-                // IMPORTANT: The modal stays open, the tile remains un-marked.
-            }
-        };
-        
-        /**
-         * Extracts the src URL from a full iframe embed code string.
-         * @param {string} iframeString - The full HTML <iframe> tag.
-         * @returns {string} - The extracted URL, or the original string if not an iframe.
-         */
-        const extractSrcFromIframe = (iframeString) => {
-            if (typeof iframeString !== 'string' || !iframeString.trim().startsWith('<iframe')) {
-                return iframeString; // Not an iframe, return original string
-            }
-            
-            // Use a simple regex to find the src attribute value
-            const match = iframeString.match(/src="([^"]+)"/);
-            if (match && match[1]) {
-                // The URL might have HTML-encoded ampersands, decode them
-                return match[1].replace(/&amp;/g, '&'); 
-            }
-            return iframeString; // Fallback
-        };
-
-        /**
-         * Converts a standard YouTube embed URL to its privacy-enhanced 'youtube-nocookie.com' equivalent.
-         * @param {string} url - The video embed URL.
-         * @returns {string} - The corrected URL.
-         */
-        const useYouTubeNoCookie = (url) => {
-            if (url.includes('youtube.com/embed/')) {
-                return url.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
-            }
-            return url;
-        };
-
-        /**
-         * Opens the modal to display the selected clue.
-         * @param {number} clueIndex - The index of the clue to open.
-         */
-        const openClue = (clueIndex) => {
-            const clue = CLUES[clueIndex];
-            CURRENT_CLUE_INDEX = clueIndex;
-            PENALIZED_TEAMS = []; // Reset penalty tracking for new clue
-
-            $clueValueText.textContent = `$${clue.Value.toLocaleString()}`;
-            $clueText.textContent = clue.Clue;
-            $clueAnswer.querySelector('span').textContent = clue.Answer;
-            
-            // Handle Media Display
-            $clueMedia.innerHTML = '';
-            const mediaType = clue.MediaType ? clue.MediaType.toLowerCase() : 'text';
-            let mediaUrl = clue.MediaURL;
-            
-            if (mediaType === 'image' && mediaUrl) {
-                // Use an empty image source with an onerror fallback
-                $clueMedia.innerHTML = `<img src="${mediaUrl}" alt="Visual Clue" class="object-contain" onerror="this.onerror=null;this.src='https://placehold.co/400x200/cc0000/fff?text=Error:+Image+URL';" />`;
-            } else if (mediaType === 'video' && mediaUrl) {
-                
-                // --- VIDEO FIXES APPLIED HERE ---
-                // 1. Extract src if user pasted full iframe code
-                let cleanUrl = extractSrcFromIframe(mediaUrl);
-                
-                // 2. Rewrite YouTube URLs to youtube-nocookie.com
-                cleanUrl = useYouTubeNoCookie(cleanUrl);
-                
-                // 3. Add parameters for better embedding (if not already present)
-                if (cleanUrl.includes('youtube-nocookie.com') && !cleanUrl.includes('?')) {
-                    cleanUrl += '?rel=0&autoplay=0';
-                }
-
-                // Use a standard iframe for video embeds
-                // **CRITICAL FIX:** Added referrerpolicy="strict-origin-when-cross-origin"
-                $clueMedia.innerHTML = `<iframe 
-                                            src="${cleanUrl}" 
-                                            frameborder="0" 
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                            referrerpolicy="strict-origin-when-cross-origin" 
-                                            allowfullscreen>
-                                        </iframe>`;
-            }
-
-            // Populate Scoring Buttons using the dedicated function
-            renderScoringButtons();
-
-            // Show Modal
-            $clueModal.classList.remove('hidden');
-            $clueModal.classList.add('flex');
-        };
-
-        // --- CSV PARSING AND GAME INITIALIZATION ---
-
-        /**
-         * Processes data from CSV or default string and populates CLUES/CATEGORIES.
-         * @param {Array<Object>} data - Array of row objects from Papa Parse.
-         * @returns {boolean} - True if data is valid and set up.
-         */
-        const setupClues = (data) => {
-            $setupMessage.classList.add('hidden'); // Clear previous messages
-
-            if (!data || data.length === 0) {
-                $setupMessage.textContent = "Error: CSV data is empty or invalid.";
-                $setupMessage.classList.remove('hidden');
-                return false;
-            }
-
-            // Map and sanitize the data
-            CLUES = data.map(row => ({
-                Category: row[CSV_HEADER_MAP.category] || '',
-                // Parse value as integer, removing non-numeric characters like '$'
-                Value: parseInt(String(row[CSV_HEADER_MAP.value]).replace(/[$,]/g, '')) || 0,
-                Clue: row[CSV_HEADER_MAP.clue] || '',
-                Answer: row[CSV_HEADER_MAP.answer] || '',
-                MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
-                MediaURL: row[CSV_HEADER_MAP.mediaUrl] || ''
-            })).filter(clue => clue.Value > 0 && clue.Category); // Ensure rows have value and category
-
-            // Determine unique categories
-            CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
-            
-            const totalClues = CLUES.length;
-            const numCategories = CATEGORIES.length;
-            
-            // Final validation checks
-            if (numCategories === 0 || totalClues === 0) {
-                 $setupMessage.textContent = "Error: No valid clues or categories found in the file.";
-                 $setupMessage.classList.remove('hidden');
-                 return false;
-            }
-
-            if (totalClues % numCategories !== 0) {
-                // Error: Non-uniform board (e.g., 5 cats but one only has 4 questions)
-                $setupMessage.textContent = `Error: Clue file requires the same number of questions per category. Found ${totalClues} total clues across ${numCategories} categories.`;
-                $setupMessage.classList.remove('hidden');
-                CLUES = [];
-                CATEGORIES = [];
-                return false;
-            }
-
-            // Initialize board state (all unplayed)
-            BOARD_STATE = new Array(CLUES.length).fill(false);
-            
-            return true;
-        };
-
-        /**
-         * Starts the game by initializing teams and rendering the board.
-         * @param {number} numTeams - The number of teams to initialize.
-         * @param {Array<number>} [initialScores=[]] - Optional array of scores for loading state.
-         * @param {Array<boolean>} [initialBoardState=[]] - Optional array of played status for loading state.
-         */
-        const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
-            
-            // 1. Initialize Teams
-            TEAMS = [];
-            for (let i = 0; i < numTeams; i++) {
-                TEAMS.push({ 
-                    name: `Team ${i + 1}`, 
-                    score: initialScores[i] !== undefined ? initialScores[i] : 0 
-                });
-            }
-
-            // 2. Load Board State if provided
-            if (initialBoardState.length === CLUES.length) {
-                BOARD_STATE = initialBoardState;
-            }
-            
-            // 3. Update UI
-            $setupScreen.classList.add('hidden');
-            $gameBoard.classList.remove('hidden');
-            $saveStateContainer.classList.remove('hidden');
-
-            updateScoreboard();
-            renderBoard();
-        };
-
-        // --- LOAD HANDLERS ---
-        
-        /**
-         * Loads the game data from a file, parses it, and enables the start button.
-         */
-        const loadGameFromFile = (file) => {
-             Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                comments: "#", // <-- CRITICAL FIX: Ignore instruction lines
-                complete: function(results) {
-                    if (setupClues(results.data)) {
-                        $startGameButton.disabled = false;
-                        $setupMessage.classList.add('hidden');
-                    } else {
-                        // Error message handled inside setupClues
-                        $startGameButton.disabled = true;
-                    }
-                },
-                error: function(error) {
-                    console.error("Papa Parse Error:", error);
-                    $startGameButton.disabled = true;
-                    $setupMessage.textContent = `CSV Parsing Error: ${error.message}`;
-                    $setupMessage.classList.remove('hidden');
-                }
-            });
-        };
-        
-        /**
-         * Loads the default game data string and prepares the game.
-         */
-        const loadDefaultGame = () => {
-            const results = Papa.parse(DEFAULT_GAME_CSV, {
-                header: true,
-                skipEmptyLines: true,
-                comments: "#"
-            });
-            
-            if (setupClues(results.data)) {
-                $startGameButton.disabled = false;
-                $setupMessage.textContent = "Default game loaded successfully.";
-                $setupMessage.classList.remove('hidden');
-                $setupMessage.classList.remove('text-red-400');
-                $setupMessage.classList.add('text-green-400');
-            } else {
-                $startGameButton.disabled = true;
-                $setupMessage.textContent = "Error loading default game.";
-                $setupMessage.classList.remove('hidden');
-                $setupMessage.classList.add('text-red-400');
-            }
-        };
-
-
-        // --- SAVE/LOAD STATE LOGIC ---
-
-        /**
-         * Generates a Base64 save code from the current game state.
-         */
-        const generateSaveCode = () => {
-            try {
-                const state = {
-                    c: CATEGORIES, // Categories
-                    d: CLUES, // Clue Data
-                    s: TEAMS.map(team => team.score), // Scores
-                    t: TEAMS.length, // Team count
-                    p: BOARD_STATE // Played tiles
-                };
-                // Convert state to JSON, then to Base64
-                const jsonState = JSON.stringify(state);
-                const base64State = btoa(jsonState);
-                $saveCodeDisplay.value = base64State;
-                $saveCodeDisplay.select(); // Select for easy copying
-            } catch (e) {
-                console.error("Error generating save code:", e);
-                $saveCodeDisplay.value = "Error generating code.";
-            }
-        };
-
-        /**
-         * Loads a game state from a Base64 save code.
-         */
-        const loadSaveCode = () => {
-            const code = $loadCodeInput.value;
-            if (!code) return;
-
-            try {
-                // Convert from Base64, then parse JSON
-                const jsonState = atob(code);
-                const state = JSON.parse(jsonState);
-
-                // Validate the loaded state
-                if (!state.c || !state.d || !state.s || !state.t || !state.p) {
-                    throw new Error("Invalid save code format.");
-                }
-
-                // Restore global state
-                CATEGORIES = state.c;
-                CLUES = state.d;
-                const numTeams = state.t;
-                const scores = state.s;
-                const boardState = state.p;
-
-                // Start the game with the restored state
-                $numTeams.value = numTeams; // Update UI
-                startGame(numTeams, scores, boardState);
-
-            } catch (e) {
-                console.error("Error loading save code:", e);
-                $setupMessage.textContent = "Error: Invalid or corrupt save code.";
-                $setupMessage.classList.remove('hidden');
-                $setupMessage.classList.add('text-red-400');
-            }
-        };
-
-        /**
-         * Triggers a download of the CSV template.
-         */
-        const downloadTemplate = () => {
-            const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", "jeopardy_template.csv");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
-
-        // --- EVENT LISTENERS ---
-
-        // Setup Screen
-        $csvFile.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                loadGameFromFile(e.target.files[0]);
-            }
-        });
-
-        $loadDefaultGameButton.addEventListener('click', loadDefaultGame);
-        $downloadTemplate.addEventListener('click', downloadTemplate);
-        $loadGameButton.addEventListener('click', loadSaveCode);
-
-        $startGameButton.addEventListener('click', () => {
-            const numTeams = parseInt($numTeams.value);
-            if (numTeams >= MIN_TEAMS && numTeams <= MAX_TEAMS) {
-                startGame(numTeams);
-            } else {
-                // We're already preventing this with min/max on the input, but this is a good safeguard.
-                // Using a custom modal/alert would be better, but window.alert is disallowed.
-                // For now, we'll just log it.
-                console.warn(`Invalid team number: ${numTeams}`);
-            }
-        });
-
-        // Game/Save Controls
-        $generateSaveCodeButton.addEventListener('click', generateSaveCode);
-        $saveCodeDisplay.addEventListener('click', () => $saveCodeDisplay.select());
-
-        // Clue Modal
-        $revealAnswerButton.addEventListener('click', () => {
-            $clueAnswer.classList.remove('hidden');
-            $revealAnswerButton.classList.add('hidden');
-        });
-        
-        $passClueButton.addEventListener('click', () => {
-            markClueAsPlayed(CURRENT_CLUE_INDEX);
-            closeClueModal();
-            CURRENT_CLUE_INDEX = -1;
-            PENALIZED_TEAMS = [];
-        });
-
-    </script>
+    <script src="app.js" defer></script>
 </body>
 </html>

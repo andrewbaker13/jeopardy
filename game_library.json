@@ -1,0 +1,27 @@
+[
+    {
+        "key": "mkt_res_fun",
+        "name": "Marketing Research Fundamentals",
+        "path": "library/mkt_res_fun.csv"
+    },
+    {
+        "key": "digital_analytics",
+        "name": "Digital Analytics",
+        "path": "library/digital_analytics.csv"
+    },
+    {
+        "key": "exp_design",
+        "name": "Experimental Design",
+        "path": "library/exp_design.csv"
+    },
+    {
+        "key": "qual_research",
+        "name": "Qualitative Research",
+        "path": "library/qual_research.csv"
+    },
+    {
+        "key": "interpreting_results",
+        "name": "Interpreting Results",
+        "path": "library/interpreting_results.csv"
+    }
+]

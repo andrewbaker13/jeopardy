@@ -1,0 +1,27 @@
+JudgeCode,112233,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
+STATISTICAL CONCEPTS,200,"In hypothesis testing, this is the threshold for deciding whether to reject the null hypothesis, commonly set at 0.05.","What is the Significance Level (or Alpha)?",text,,No
+STATISTICAL CONCEPTS,400,"This value indicates the probability of observing the data, or something more extreme, if the null hypothesis were true.","What is the p-value?",text,,No
+STATISTICAL CONCEPTS,600,"A range of values derived from sample statistics that is likely to contain the value of an unknown population parameter.","What is a Confidence Interval?",text,,No
+STATISTICAL CONCEPTS,800,"This type of error occurs when you fail to reject a null hypothesis that is actually false (a 'false negative').","What is a Type II Error?",text,,No
+STATISTICAL CONCEPTS,1000,"This refers to the probability that a statistical test will correctly reject a false null hypothesis.","What is Statistical Power?",text,,No
+CORRELATION & CAUSATION,200,"A numerical measure that expresses the strength and direction of a linear relationship between two variables, ranging from -1 to +1.","What is a Correlation Coefficient (r)?",text,,No
+CORRELATION & CAUSATION,400,"The famous phrase reminding us that a relationship between two variables does not mean one causes the other.","What is 'Correlation does not imply causation'?",text,,No
+CORRELATION & CAUSATION,600,"A variable that is statistically related to both the independent and dependent variables, creating a misleading association.","What is a Confounding Variable?",text,,No
+CORRELATION & CAUSATION,800,"A relationship between two variables that appears to be causal but is actually due to a third, unmeasured variable.","What is a Spurious Correlation?",text,,Yes
+CORRELATION & CAUSATION,1000,"To establish this, one must demonstrate temporal precedence, covariation, and the absence of alternative explanations.","What is Causation (or Causality)?",text,,No
+REGRESSION ANALYSIS,200,"In a regression model, this is the variable that you are trying to predict.","What is the Dependent Variable?",text,,No
+REGRESSION ANALYSIS,400,"This statistic, ranging from 0 to 1, represents the proportion of the variance in the dependent variable that is predictable from the independent variable(s).","What is R-squared?",text,,No
+REGRESSION ANALYSIS,600,"A regression model with one independent variable is called this.","What is Simple Linear Regression?",text,,No
+REGRESSION ANALYSIS,800,"In a regression equation, this term represents the change in the dependent variable for a one-unit change in the independent variable.","What is the Coefficient (or Slope)?",text,,No
+REGRESSION ANALYSIS,1000,"A type of regression used when the dependent variable is binary (e.g., yes/no, win/loss).","What is Logistic Regression?",text,,No
+DATA VISUALIZATION,200,"A circular statistical graphic, which is divided into slices to illustrate numerical proportion.","What is a Pie Chart?",text,,No
+DATA VISUALIZATION,400,"A graph that uses rectangular bars with heights or lengths proportional to the values that they represent, often used for comparing categories.","What is a Bar Chart?",text,,No
+DATA VISUALIZATION,600,"A type of chart used to display information as a series of data points connected by straight line segments, often used to show trends over time.","What is a Line Chart?",text,,No
+DATA VISUALIZATION,800,"A graph that shows the relationship between two quantitative variables, with individual data points plotted on a two-dimensional plane.","What is a Scatter Plot?",text,,No
+DATA VISUALIZATION,1000,"A graphical representation of data that uses a system of 'whiskers' to display the distribution and variability of a dataset.","What is a Box Plot (or Box-and-Whisker Plot)?",text,,No
+REPORTING INSIGHTS,200,"A brief, high-level summary of the key findings and recommendations of a research report, placed at the beginning.","What is an Executive Summary?",text,,No
+REPORTING INSIGHTS,400,"A statement of what the research findings mean and what the business should do as a result.","What is a Recommendation?",text,,No
+REPORTING INSIGHTS,600,"The part of a research report that details the methodology, including sampling, data collection, and analysis techniques.","What is the Methodology Section?",text,,No
+REPORTING INSIGHTS,800,"A finding from data analysis that is actionable and can be used to inform business strategy.","What is an Insight?",text,,No
+REPORTING INSIGHTS,1000,"The section of a report that acknowledges potential weaknesses or constraints of the study.","What is the Limitations Section?",text,,No
