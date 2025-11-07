@@ -1,59 +1,94 @@
-GameTitle,"Customize Your Game Name in CSV",,,,,,,
-JudgeCode,112233,,,,,,
-Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
-CATEGORY_1,200,The first text-only clue for Category 1,"What is the answer for 200?",text,,No
-CATEGORY_1,400,This clue will show an image; ensure the MediaURL is a direct link.,"What is the answer for 400?",image,https://placehold.co/400x200/5cb85c/fff?text=PLACE+DIRECT+IMAGE+LINK+HERE,No
-CATEGORY_1,600,The third clue,"What is the answer for 600?",text,,No
-CATEGORY_1,800,This clue will show a video. Use the YouTube or Vimeo EMBED URL.,"What is the answer for 800?",video,https://www.youtube.com/embed/T12SKqPIUlM?si=IIuxSAfcwl5jfTZ8,No
-CATEGORY_1,1000,The final clue for Category 1,"What is the answer for 1000?",video, https://youtu.be/O-3Mlj3MQ_Q?si=qekU_mHDYLaICTA4,No
-CATEGORY_2,200,Clue text for Category 2,"What is the answer for Category 2?",text,,No
-CATEGORY_2,400,Clue text for Category 2,"What is the answer for Category 2?",text,,No
-CATEGORY_2,600,Clue text for Category 2,"What is the answer for Category 2?",text,,No
-CATEGORY_2,800,Clue text for Category 2,"What is the answer for Category 2?",text,,Yes
-CATEGORY_2,1000,Clue text for Category 2,"What is the answer for Category 2?",text,,No
-CATEGORY_3,200,Clue text for Category 3,"What is the answer for Category 3?",text,,No
-CATEGORY_3,400,Clue text for Category 3,"What is the answer for Category 3?",text,,No
-CATEGORY_3,600,Clue text for Category 3,"What is the answer for Category 3?",text,,No
-CATEGORY_3,800,Clue text for Category 3,"What is the answer for Category 3?",text,,No
-CATEGORY_3,1000,Clue text for Category 3,"What is the answer for Category 3?",text,,No
-CATEGORY_4,200,Clue text for Category 4,"What is the answer for Category 4?",text,,No
-CATEGORY_4,400,Clue text for Category 4,"What is the answer for Category 4?",text,,No
-CATEGORY_4,600,Clue text for Category 4,"What is the answer for Category 4?",text,,No
-CATEGORY_4,800,Clue text for Category 4,"What is the answer for Category 4?",text,,No
-CATEGORY_4,1000,Clue text for Category 4,"What is the answer for Category 4?",text,,No
-CATEGORY_5,200,Clue text for Category 5,"What is the answer for Category 5?",text,,No
-CATEGORY_5,400,Clue text for Category 5,"What is the answer for Category 5?",text,,No
-CATEGORY_5,600,Clue text for Category 5,"What is the answer for Category 5?",text,,No
-CATEGORY_5,800,Clue text for Category 5,"What is the answer for Category 5?",text,,No
-CATEGORY_5,1000,Clue text for Category 5,"What is the answer for Category 5?",text,,No
+GameTitle,"Customize Your Game Name in CSV",,,,,,,,
+JudgeCode,112233,,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble,Round
+# --- ROUND 1 ---
+CATEGORY_1,100,"This is an IMAGE clue. The image appears above this text.","What is an image?",image,"https://placehold.co/600x300/0d287c/ffff?text=Image+Clue",No,1
+CATEGORY_1,200,"This is a VIDEO clue. Use the EMBED URL from YouTube.","What is a video?",video,"https://www.youtube.com/embed/FyLUyDap6xY",No,1
+CATEGORY_1,300,"This clue uses HTML to render a 2x2 table.","What is an HTML table?",html,"<table class='w-full text-left text-white'><tbody><tr class='border-t border-gray-600'><td class='p-2'>10</td><td class='p-2'>20</td></tr><tr class='border-t border-gray-600'><td class='p-2'>30</td><td class='p-2'>40</td></tr></tbody></table>",No,1
+CATEGORY_1,400,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_1,500,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_2,100,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_2,200,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_2,300,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_2,400,"Round 1 Clue","What is the answer?",text,,Yes,1
+CATEGORY_2,500,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_3,100,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_3,200,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_3,300,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_3,400,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_3,500,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_4,100,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_4,200,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_4,300,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_4,400,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_4,500,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_5,100,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_5,200,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_5,300,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_5,400,"Round 1 Clue","What is the answer?",text,,No,1
+CATEGORY_5,500,"Round 1 Clue","What is the answer?",text,,No,1
+# --- ROUND 2 ---
+CATEGORY_A,200,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_A,400,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_A,600,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_A,800,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_A,1000,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_B,200,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_B,400,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_B,600,"Round 2 Clue","What is the answer?",text,,Yes,2
+CATEGORY_B,800,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_B,1000,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_C,200,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_C,400,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_C,600,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_C,800,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_C,1000,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_D,200,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_D,400,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_D,600,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_D,800,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_D,1000,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_E,200,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_E,400,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_E,600,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_E,800,"Round 2 Clue","What is the answer?",text,,No,2
+CATEGORY_E,1000,"This clue uses HTML to render a table.","What is a table?",html,"<table class='w-full text-left text-white'><thead><tr class='bg-gray-700'><th class='p-2'>Header 1</th><th class='p-2'>Header 2</th></tr></thead><tbody><tr class='border-t border-gray-600'><td class='p-2'>Data A</td><td class='p-2'>Data B</td></tr></tbody></table>",No,2
+# --- FINAL JEOPARDY (OPTIONAL) ---
+FINAL JEOPARDY,"HISTORIC DOCUMENTS","This document, signed in 1776, declared the 13 colonies independent from Great Britain.","What is the Declaration of Independence?",text,,,FJ
 # --- INSTRUCTIONS START BELOW THIS LINE ---
 # IMPORTANT: Lines starting with a '#' are ignored by the game and should be used for instructions only.
 #
 # CUSTOM GAME TITLE:
 # The very first row should start with "GameTitle" in the first column, and your desired game title in the second column.
-# Example: GameTitle,"My Awesome History Game",,,,,,,
+# Example: GameTitle "My Awesome History Game"
 #
-# FILE STRUCTURE:
-# 1. This file MUST contain exactly 5 categories, with 5 questions per category (25 total rows).
-# 2. Category names MUST be identical for all 5 rows within that category (e.g., all 5 rows for "HISTORY").
-# 3. Value MUST be 200, 400, 600, 800, and 1000 for each category.
-# 4. To include commas in Clue or Answer text, you MUST enclose the entire cell content in double quotes (e.g., "This answer is, in fact, correct").
+# ROUND STRUCTURE:
+# - The 'Round' column determines which round a clue belongs to (1 or 2).
+# - A valid game can have just Round 1, just Round 2, or both.
+# - A complete Round 1 MUST have 5 categories with values 100, 200, 300, 400, 500 for each (25 clues total).
+# - A complete Round 2 MUST have 5 categories with values 200, 400, 600, 800, 1000 for each (25 clues total).
+# - Category names MUST be identical for all 5 clues within that category for a given round.
+# - If both rounds are present, the game will automatically switch to Round 2 after all Round 1 clues are played.
+#
+# FINAL JEOPARDY:
+# - To add a Final Jeopardy round, create one row where the 'Category' is 'FINAL JEOPARDY' and the 'Round' is 'FJ'.
+#
+# OTHER COLUMNS:
+# - To include commas in Clue or Answer text you MUST enclose the entire cell content in double quotes (e.g. "This answer is in fact correct").
 #
 # DAILY DOUBLES:
 # The 'DailyDouble' column determines if a clue is a Daily Double.
 # - Set the value to 'Yes' to make it a Daily Double.
 # - Set the value to 'No' (or leave it blank) for a normal clue.
 # MEDIA INSTRUCTIONS:
-# MediaType can be: 'text' (default), 'image', or 'video'.
+# MediaType can be 'text' (default) 'image' 'video' or 'html'.
 # MediaURL is only required for 'image' or 'video' clues.
 #
 # IMAGES (MediaType: image):
-# Use a publicly accessible, DIRECT URL that ends in an image extension (.jpg, .png, etc.). 
+# Use a publicly accessible DIRECT URL that ends in an image extension (.jpg .png etc.). 
 # Standard Google Drive or Dropbox *sharing* links will usually NOT work.
 #
 # VIDEOS (MediaType: video):
 # You MUST use the **EMBED URL** (the URL found inside the iframe tag when sharing/embedding a video).
-# - YouTube Example: Use https://www.youtube.com/embed/VIDEO_ID_HERE
-#   (youtube-nocookie.com/embed/VIDEO_ID_HERE is usually acceptable too, but some environments
-#    may require the standard youtube.com embed host for origin/auth checks.)
-# - Vimeo Example: Use https://player.vimeo.com/video/VIDEO_ID_HERE
+# - YouTube Example: Use https://www.youtube.com/embed/VIDEO_ID_HERE.
+# - Vimeo Example: Use https://player.vimeo.com/video/VIDEO_ID_HERE.

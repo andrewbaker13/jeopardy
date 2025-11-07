@@ -1,22 +1,27 @@
-JudgeCode,112233,,,,,,
-Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
-SEO & SEM,200,"In Google Ads, this metric is calculated by dividing the number of clicks an ad receives by the number of times it's shown.","What is Click-Through Rate (CTR)?",text,,No
-SEO & SEM,400,These are longer, more specific search phrases that tend to have lower search volume but higher conversion rates.,"What are long-tail keywords?",text,,No
-SEO & SEM,600,"A link from one website to another, considered a 'vote of confidence' and a key factor in search engine ranking algorithms.","What is a backlink?",text,,No
-SEO & SEM,800,"In paid search, this is an estimate of the quality of your ads, keywords, and landing pages, which influences your ad rank and cost.","What is Quality Score?",text,,No
-SEO & SEM,1000,This acronym refers to the practice of improving a website to increase its visibility in organic search engine results.,"What is SEO (Search Engine Optimization)?",text,,No
-WEB ANALYTICS,200,"In Google Analytics, this term represents a single-page session on your site, where the user left without any further interaction.","What is a bounce?",text,,No
-WEB ANALYTICS,400,"These are tags added to a URL to track the source, medium, and campaign name of website traffic.","What are UTM parameters?",text,,Yes
-WEB ANALYTICS,600,"This type of modeling assigns credit for sales and conversions to various touchpoints in a customer's journey.","What is attribution modeling?",text,,No
-WEB ANALYTICS,800,A user-defined action that is valuable to your business, such as a form submission or a purchase, tracked in an analytics platform.,"What is a Goal (or Conversion)?",text,,No
-WEB ANALYTICS,1000,The total number of interactions with your site, which can include multiple pageviews, events, or transactions from a single user.,"What is a session?",text,,No
-SOCIAL MEDIA METRICS,200,"The percentage of your audience that has seen your post and reacted with a like, comment, share, or save.","What is Engagement Rate?",text,,No
-SOCIAL MEDIA METRICS,400,This metric measures the total number of times your content was displayed, regardless of whether it was clicked.,"What are impressions?",text,,No
-SOCIAL MEDIA METRICS,600,"A metric that tracks how much of the conversation about your industry or keywords is about your brand versus your competitors.","What is Share of Voice (SOV)?",text,,No
-SOCIAL MEDIA METRICS,800,"Metrics like 'likes' or 'followers' are often called this if they don't directly correlate with business objectives.","What are vanity metrics?",text,,No
-SOCIAL MEDIA METRICS,1000,This is the total number of unique people who see your content.,"What is reach?",text,,No
-EMAIL & CONVERSION,200,The percentage of total recipients who opened an email campaign.,"What is Open Rate?",text,,No
-EMAIL & CONVERSION,400,"An email that could not be delivered due to a permanent reason, such as an invalid email address.","What is a hard bounce?",text,,No
-EMAIL & CONVERSION,600,"In marketing, this is the process of persuading a visitor to take a specific, desired action.","What is conversion?",text,,No
-EMAIL & CONVERSION,800,"A standalone web page created specifically for a marketing or advertising campaign, designed with a single focused objective.","What is a landing page?",text,,No
-EMAIL & CONVERSION,1000,This U.S. law sets the rules for commercial email, establishes requirements for commercial messages, and gives recipients the right to have you stop emailing them.,"What is the CAN-SPAM Act?",text,,No
+JudgeCode,112233,,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble,Round
+SEO & SEM,200,"In Google Ads, this metric is calculated by dividing the number of clicks an ad receives by the number of times it's shown.","What is Click-Through Rate (CTR)?",text,,No,2
+SEO & SEM,400,"These are longer, more specific search phrases that tend to have lower search volume but higher conversion rates.","What are long-tail keywords?",text,,No,2
+SEO & SEM,600,"A link from one website to another, considered a 'vote of confidence' and a key factor in search engine ranking algorithms.","What is a backlink?",text,,No,2
+SEO & SEM,800,"In paid search, this is an estimate of the quality of your ads, keywords, and landing pages, which influences your ad rank and cost.","What is Quality Score?",text,,No,2
+SEO & SEM,1000,"This acronym refers to the practice of improving a website to increase its visibility in organic search engine results.","What is SEO (Search Engine Optimization)?",text,,No,2
+WEB ANALYTICS,200,"In Google Analytics, this term represents a single-page session on your site, where the user left without any further interaction.","What is a bounce?",text,,No,2
+WEB ANALYTICS,400,"These are tags added to a URL to track the source, medium, and campaign name of website traffic.","What are UTM parameters?",text,,Yes,2
+WEB ANALYTICS,600,"This type of modeling assigns credit for sales and conversions to various touchpoints in a customer's journey.","What is attribution modeling?",text,,No,2
+WEB ANALYTICS,800,"A user-defined action that is valuable to your business, such as a form submission or a purchase, tracked in an analytics platform.","What is a Goal (or Conversion)?",text,,No,2
+WEB ANALYTICS,1000,"The total number of interactions with your site, which can include multiple pageviews, events, or transactions from a single user.","What is a session?",text,,No,2
+SOCIAL MEDIA METRICS,200,"The percentage of your audience that has seen your post and reacted with a like, comment, share, or save.","What is Engagement Rate?",text,,No,2
+SOCIAL MEDIA METRICS,400,"This metric measures the total number of times your content was displayed, regardless of whether it was clicked.","What are impressions?",text,,No,2
+SOCIAL MEDIA METRICS,600,"A metric that tracks how much of the conversation about your industry or keywords is about your brand versus your competitors.","What is Share of Voice (SOV)?",text,,No,2
+SOCIAL MEDIA METRICS,800,"Metrics like 'likes' or 'followers' are often called this if they don't directly correlate with business objectives.","What are vanity metrics?",text,,No,2
+SOCIAL MEDIA METRICS,1000,"This is the total number of unique people who see your content.","What is reach?",text,,No,2
+EMAIL & CONVERSION,200,"The percentage of total recipients who opened an email campaign.","What is Open Rate?",text,,No,2
+EMAIL & CONVERSION,400,"An email that could not be delivered due to a permanent reason, such as an invalid email address.","What is a hard bounce?",text,,No,2
+EMAIL & CONVERSION,600,"In marketing, this is the process of persuading a visitor to take a specific, desired action.","What is conversion?",text,,No,2
+EMAIL & CONVERSION,800,"A standalone web page created specifically for a marketing or advertising campaign, designed with a single focused objective.","What is a landing page?",text,,No,2
+EMAIL & CONVERSION,1000,"This U.S. law sets the rules for commercial email, establishes requirements for commercial messages, and gives recipients the right to have them stop emailing them.","What is the CAN-SPAM Act?",text,,No,2
+ATTRIBUTION,200,"This model gives 100% conversion credit to the final ad or click a user interacts with before purchase.","What is the Last-Click model?",text,,Yes,2
+ATTRIBUTION,400,"In a First-Click model, if a user interacts with Search -> Display -> Social -> Conversion, which touchpoint receives full credit?","What is Search?",text,,No,2
+ATTRIBUTION,600,"A Linear model splits credit evenly across all touchpoints. If there are 4 interactions, how much credit does each get?","What is 25% each?",text,,No,2
+ATTRIBUTION,800,"A Time-Decay model gives more credit to touchpoints closer to the conversion.","What is a Time-Decay model?",text,,No,2
+ATTRIBUTION,1000,"A retailer’s data-driven model finds incremental impacts: Email = 0.04, Search = 0.06, Display = 0.02. Normalize these so total = 1.","What is Email = 0.33, Search = 0.50, Display = 0.17.",text,,No,2

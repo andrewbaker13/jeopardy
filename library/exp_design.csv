@@ -1,27 +1,53 @@
-JudgeCode,112233,,,,,,
-Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
-CORE CONCEPTS,200,The variable that is manipulated or changed by the researcher to observe its effect on another variable.,"What is the Independent Variable?",text,,No
-CORE CONCEPTS,400,The process of assigning participants to different experimental groups in a way that each participant has an equal chance of being in any group.,"What is Randomization (or Random Assignment)?",text,,No
-CORE CONCEPTS,600,The variable that is measured by the researcher to see if it is affected by the independent variable.,"What is the Dependent Variable?",text,,No
-CORE CONCEPTS,800,"In an experiment, this is the group that does not receive the experimental treatment and is used as a benchmark.","What is the Control Group?",text,,No
-CORE CONCEPTS,1000,A testable statement about the relationship between two or more variables.,"What is a Hypothesis?",text,,No
-VALIDITY THREATS,200,"The extent to which the results of a study can be generalized to other situations, people, or times.","What is External Validity?",text,,No
-VALIDITY THREATS,400,"The degree to which an experiment is free from flaws, ensuring that the independent variable caused the observed effect.","What is Internal Validity?",text,,No
-VALIDITY THREATS,600,"The phenomenon where participants alter their behavior simply because they know they are being observed.","What is the Hawthorne Effect?",text,,No
-VALIDITY THREATS,800,"A threat to internal validity where natural changes in the participants over time (e.g., growing older, getting tired) could affect the results.","What is Maturation?",text,,Yes
-VALIDITY THREATS,1000,"A threat to internal validity where an external event occurs during the experiment that could influence the dependent variable.","What is a History Effect?",text,,No
-TYPES OF DESIGNS,200,"A simple experiment where two versions (A and B) of a single variable are compared, commonly used for websites and ads.","What is an A/B Test?",text,,No
-TYPES OF DESIGNS,400,"In this design, different groups of participants are exposed to different experimental conditions.","What is a Between-Subjects Design?",text,,No
-TYPES OF DESIGNS,600,"In this design, the same group of participants is exposed to all of the different experimental conditions.","What is a Within-Subjects (or Repeated Measures) Design?",text,,No
-TYPES OF DESIGNS,800,"An experiment that lacks random assignment to treatment groups, often used when randomization is not feasible.","What is a Quasi-Experiment?",text,,No
-TYPES OF DESIGNS,1000,"A design that studies two or more independent variables simultaneously, allowing for the examination of their interaction effects.","What is a Factorial Design?",text,,No
-MEASUREMENT,200,"The consistency or repeatability of a measure; if you measure the same thing multiple times, you get a similar result.","What is Reliability?",text,,No
-MEASUREMENT,400,"The extent to_which a measure accurately captures the concept it is intended to measure.","What is Validity (of a measure)?",text,,No
-MEASUREMENT,600,"A scale that asks respondents to rate their agreement with a statement, typically on a 5 or 7-point scale.","What is a Likert Scale?",text,,No
-MEASUREMENT,800,"An abstract idea or concept being studied, such as 'brand loyalty' or 'customer satisfaction'.","What is a Construct?",text,,No
-MEASUREMENT,1000,"A scale that measures attitudes by asking respondents to rate a concept on a series of bipolar adjective pairs, like 'Good-Bad' or 'Modern-Traditional'.","What is a Semantic Differential Scale?",text,,No
-STATISTICAL TESTS,200,This test is used to determine if there is a significant difference between the means of two groups.,"What is a T-Test?",text,,No
-STATISTICAL TESTS,400,"This test, an acronym for Analysis of Variance, is used to compare the means of three or more groups.","What is ANOVA?",text,,No
-STATISTICAL TESTS,600,"In hypothesis testing, this is the probability of obtaining results at least as extreme as the observed results, assuming the null hypothesis is true.","What is the p-value?",text,,No
-STATISTICAL TESTS,800,"This type of error occurs when a researcher incorrectly rejects a true null hypothesis (a 'false positive').","What is a Type I Error?",text,,No
-STATISTICAL TESTS,1000,"This statistical test is used to determine if there is a significant association between two categorical variables.","What is a Chi-Square Test?",text,,No
+GameTitle,"Experimental Design",,,,,,,,
+JudgeCode,112233,,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble,Round
+BASIC CONCEPTS,100,"The group in an experiment that receives the treatment or intervention being studied.","What is the experimental group?",text,,No,1
+BASIC CONCEPTS,200,"A proposed explanation for a phenomenon that can be tested through experimentation.","What is a hypothesis?",text,,No,1
+BASIC CONCEPTS,300,"The factor that is measured or observed to see if it is affected by the independent variable.","What is the dependent variable?",text,,No,1
+BASIC CONCEPTS,400,"The process of assigning participants to experimental and control groups by chance.","What is random assignment?",text,,No,1
+BASIC CONCEPTS,500,"A procedure in which the researchers, the participants, or both are unaware of who is in the experimental or control groups.","What is blinding (or a blind study)?",text,,No,1
+EXPERIMENTAL VALIDITY,100,"The degree to which the results of an experiment can be generalized to other settings, people, and times.","What is external validity?",text,,No,1
+EXPERIMENTAL VALIDITY,200,"A flaw in the experimental design that allows an outside variable to influence the dependent variable.","What is a confound?",text,,No,1
+EXPERIMENTAL VALIDITY,300,"The extent to which a cause-and-effect relationship established in a study can be trusted.","What is internal validity?",text,,No,1
+EXPERIMENTAL VALIDITY,400,"The effect on an outcome that occurs when participants' expectations, rather than the treatment itself, influence the result.","What is the placebo effect?",text,,No,1
+EXPERIMENTAL VALIDITY,500,"A threat to validity that occurs when participants drop out of a study over time.","What is attrition (or mortality)?",text,,Yes,1
+DESIGN TYPES,100,"A research design that compares two groups, one that receives a treatment and one that does not.","What is a between-subjects design?",text,,No,1
+DESIGN TYPES,200,"An experiment conducted in a controlled environment, such as a laboratory.","What is a lab experiment?",text,,No,1
+DESIGN TYPES,300,"A design where all participants are exposed to every treatment or condition, including the control.","What is a within-subjects design?",text,,No,1
+DESIGN TYPES,400,"An experiment conducted in a real-world setting, not in a lab.","What is a field experiment?",text,,No,1
+DESIGN TYPES,500,"A study that resembles an experiment but lacks random assignment, often due to practical or ethical constraints.","What is a quasi-experiment?",text,,No,1
+SAMPLING,100,"The entire group of individuals that a researcher is interested in studying.","What is the population?",text,,No,1
+SAMPLING,200,"A subset of the population that is selected to participate in the study.","What is a sample?",text,,No,1
+SAMPLING,300,"A sampling method where every member of the population has an equal chance of being selected.","What is random sampling?",text,,No,1
+SAMPLING,400,"A sampling technique where the population is divided into subgroups (strata) and a random sample is taken from each subgroup.","What is stratified sampling?",text,,No,1
+SAMPLING,500,"A non-probability sampling method where researchers rely on the ease of reaching potential participants.","What is convenience sampling?",text,,No,1
+DATA & ANALYSIS,100,"Data that is numerical and can be measured.","What is quantitative data?",text,,No,1
+DATA & ANALYSIS,200,"A statistical test used to compare the means of two groups to see if they are significantly different.","What is a t-test?",text,,No,1
+DATA & ANALYSIS,300,"A measure of the strength and direction of the relationship between two variables.","What is correlation?",text,,No,1
+DATA & ANALYSIS,400,"The value that indicates the probability of finding the observed results when the null hypothesis is true, often set at a 0.05 threshold.","What is the p-value?",text,,No,1
+DATA & ANALYSIS,500,"A statistical method used to compare the means of three or more groups, with the acronym ANOVA.","What is Analysis of Variance?",text,,No,1
+ADVANCED CONCEPTS,200,"The variable that is manipulated or changed by the researcher to observe its effect on another variable.","What is the Independent Variable?",text,,Yes,2
+ADVANCED CONCEPTS,400,"The process of assigning participants to different experimental groups in a way that each participant has an equal chance of being in any group.","What is Randomization (or Random Assignment)?",text,,No,2
+ADVANCED CONCEPTS,600,"The variable that is measured by the researcher to see if it is affected by the independent variable.","What is the Dependent Variable?",text,,No,2
+ADVANCED CONCEPTS,800,"In an experiment, this is the group that does not receive the experimental treatment and is used as a benchmark.","What is the Control Group?",text,,No,2
+ADVANCED CONCEPTS,1000,"A testable statement about the relationship between two or more variables.","What is a Hypothesis?",text,,No,2
+ADVANCED VALIDITY,200,"The extent to which the results of a study can be generalized to other situations, people, or times.","What is External Validity?",text,,No,2
+ADVANCED VALIDITY,400,"The degree to which an experiment is free from flaws, ensuring that the independent variable caused the observed effect.","What is Internal Validity?",text,,No,2
+ADVANCED VALIDITY,600,"The phenomenon where participants alter their behavior simply because they know they are being observed.","What is the Hawthorne Effect?",text,,No,2
+ADVANCED VALIDITY,800,"A threat to internal validity where natural changes in the participants over time (e.g., growing older, getting tired) could affect the results.","What is Maturation?",text,,Yes,2
+ADVANCED VALIDITY,1000,"A threat to internal validity where an external event occurs during the experiment that could influence the dependent variable.","What is a History Effect?",text,,No,2
+ADVANCED DESIGNS,200,"A simple experiment where two versions (A and B) of a single variable are compared, commonly used for websites and ads.","What is an A/B Test?",text,,No,2
+ADVANCED DESIGNS,400,"In this design, different groups of participants are exposed to different experimental conditions.","What is a Between-Subjects Design?",text,,No,2
+ADVANCED DESIGNS,600,"In this design, the same group of participants is exposed to all of the different experimental conditions.","What is a Within-Subjects (or Repeated Measures) Design?",text,,No,2
+ADVANCED DESIGNS,800,"An experiment that lacks random assignment to treatment groups, often used when randomization is not feasible.","What is a Quasi-Experiment?",text,,No,2
+ADVANCED DESIGNS,1000,"A design that studies two or more independent variables simultaneously, allowing for the examination of their interaction effects.","What is a Factorial Design?",text,,No,2
+ADVANCED MEASUREMENT,200,"The consistency or repeatability of a measure; if you measure the same thing multiple times, you get a similar result.","What is Reliability?",text,,No,2
+ADVANCED MEASUREMENT,400,"The extent to which a measure accurately captures the concept it is intended to measure.","What is Validity (of a measure)?",text,,No,2
+ADVANCED MEASUREMENT,600,"A scale that asks respondents to rate their agreement with a statement, typically on a 5 or 7-point scale.","What is a Likert Scale?",text,,No,2
+ADVANCED MEASUREMENT,800,"An abstract idea or concept being studied, such as 'brand loyalty' or 'customer satisfaction'.","What is a Construct?",text,,No,2
+ADVANCED MEASUREMENT,1000,"A scale that measures attitudes by asking respondents to rate a concept on a series of bipolar adjective pairs, like 'Good-Bad' or 'Modern-Traditional'.","What is a Semantic Differential Scale?",text,,No,2
+ADVANCED ANALYSIS,200,"This test is used to determine if there is a significant difference between the means of two groups.","What is a T-Test?",text,,No,2
+ADVANCED ANALYSIS,400,"This test, an acronym for Analysis of Variance, is used to compare the means of three or more groups.","What is ANOVA?",text,,No,2
+ADVANCED ANALYSIS,600,"In hypothesis testing, this is the probability of obtaining results at least as extreme as the observed results, assuming the null hypothesis is true.","What is the p-value?",text,,No,2
+ADVANCED ANALYSIS,800,"This type of error occurs when a researcher incorrectly rejects a true null hypothesis (a 'false positive').","What is a Type I Error?",text,,No,2
+ADVANCED ANALYSIS,1000,"This statistical test is used to determine if there is a significant association between two categorical variables.","What is a Chi-Square Test?",text,,No,2

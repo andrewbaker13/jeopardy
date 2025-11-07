@@ -3,6 +3,10 @@ body {
     background-color: #1a202c;
 }
 
+.font-jeopardy {
+    font-family: 'Zilla Slab', serif;
+}
+
 /* Classic Jeopardy Blue */
 .jeopardy-blue {
     background-color: #0d287c;
@@ -22,6 +26,8 @@ body {
     -ms-user-select: none;
     /* IE10+/Edge */
     user-select: none;
+    /* Standard */
+    min-height: 100px; /* Ensures row height is maintained when tiles are empty */
     /* Standard */
 }
 

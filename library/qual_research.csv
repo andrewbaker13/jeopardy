@@ -1,27 +1,27 @@
 JudgeCode,112233,,,,,,
-Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
-METHODS,200,"A research method involving a moderated discussion with a small group of participants, used to explore attitudes and perceptions.","What is a Focus Group?",text,,No
-METHODS,400,"A one-on-one conversation where a researcher asks open-ended questions to explore a topic in great detail with a single participant.","What is an In-depth Interview (IDI)?",text,,No
-METHODS,600,"The study of people in their own environment through the use of methods such as participant observation and face-to-face interviewing.","What is Ethnography?",text,,No
-METHODS,800,"A qualitative approach where the researcher develops a theory 'grounded' in the data collected from the field.","What is Grounded Theory?",text,,No
-METHODS,1000,"An in-depth investigation of a single individual, group, or event.","What is a Case Study?",text,,No
-DATA COLLECTION,200,"A set of questions or topics to be covered during a qualitative interview or focus group.","What is an Interview Guide (or Discussion Guide)?",text,,No
-DATA COLLECTION,400,"A follow-up question used by an interviewer to encourage a participant to elaborate on a response.","What is a Probe?",text,,No
-DATA COLLECTION,600,"A data collection method where the researcher becomes part of the community they are studying to gain a deeper understanding.","What is Participant Observation?",text,,No
-DATA COLLECTION,800,"The detailed notes taken by a researcher describing what they have seen, heard, and experienced during an observational study.","What are Field Notes?",text,,No
-DATA COLLECTION,1000,"A technique where participants are asked to create a collage or collection of images to represent their feelings about a topic.","What is a Collage Technique?",text,,Yes
-ANALYSIS,200,"The process of reading through qualitative data to identify and label recurring ideas, themes, or patterns.","What is Coding?",text,,No
-ANALYSIS,400,"The point in data collection when no new insights or themes are emerging from the data.","What is Thematic Saturation?",text,,No
-ANALYSIS,600,"A method for systematically analyzing the content of communications, such as text, images, or videos.","What is Content Analysis?",text,,No
-ANALYSIS,800,"The process of organizing and interpreting qualitative data to identify themes and patterns.","What is Thematic Analysis?",text,,No
-ANALYSIS,1000,"A detailed, rich description of a person, place, or event in a qualitative research report.","What is a Thick Description?",text,,No
-SAMPLING,200,"A non-probability technique where participants are selected based on the researcher's judgment of who would be most informative.","What is Purposive Sampling (or Judgmental Sampling)?",text,,No
-SAMPLING,400,"A technique where existing study subjects recruit future subjects from among their acquaintances.","What is Snowball Sampling?",text,,No
-SAMPLING,600,"A non-probability technique where researchers select participants who are easily accessible.","What is Convenience Sampling?",text,,No
-SAMPLING,800,"In qualitative research, this refers to the number of participants or data sources, which is typically much smaller than in quantitative studies.","What is Sample Size?",text,,No
-SAMPLING,1000,"A type of purposive sampling where researchers select cases that are particularly unusual or different to learn from their extremity.","What is Deviant Case Sampling?",text,,No
-ETHICS,200,"The practice of keeping participants' identities and personal information private and not disclosing it to others.","What is Confidentiality?",text,,No
-ETHICS,400,"The ethical requirement to obtain voluntary agreement from participants after they have been fully informed about the research.","What is Informed Consent?",text,,No
-ETHICS,600,"The process of concealing the identity of participants so that even the researcher cannot link the data to a specific individual.","What is Anonymity?",text,,No
-ETHICS,800,"The ethical principle that emphasizes minimizing harm and maximizing benefits for research participants.","What is Beneficence?",text,,No
-ETHICS,1000,"A review committee established to protect the rights and welfare of human research subjects.","What is an Institutional Review Board (IRB)?",text,,No
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble,Round
+METHODS,200,"A research method involving a moderated discussion with a small group of participants, used to explore attitudes and perceptions.","What is a Focus Group?",text,,No,2
+METHODS,400,"A one-on-one conversation where a researcher asks open-ended questions to explore a topic in great detail with a single participant.","What is an In-depth Interview (IDI)?",text,,No,2
+METHODS,600,"The study of people in their own environment through the use of methods such as participant observation and face-to-face interviewing.","What is Ethnography?",text,,No,2
+METHODS,800,"A qualitative approach where the researcher develops a theory 'grounded' in the data collected from the field.","What is Grounded Theory?",text,,No,2
+METHODS,1000,"An in-depth investigation of a single individual, group, or event.","What is a Case Study?",text,,No,2
+DATA COLLECTION,200,"A set of questions or topics to be covered during a qualitative interview or focus group.","What is an Interview Guide (or Discussion Guide)?",text,,No,2
+DATA COLLECTION,400,"A follow-up question used by an interviewer to encourage a participant to elaborate on a response.","What is a Probe?",text,,No,2
+DATA COLLECTION,600,"A data collection method where the researcher becomes part of the community they are studying to gain a deeper understanding.","What is Participant Observation?",text,,No,2
+DATA COLLECTION,800,"The detailed notes taken by a researcher describing what they have seen, heard, and experienced during an observational study.","What are Field Notes?",text,,No,2
+DATA COLLECTION,1000,"A technique where participants are asked to create a collage or collection of images to represent their feelings about a topic.","What is a Collage Technique?",text,,Yes,2
+ANALYSIS,200,"The process of reading through qualitative data to identify and label recurring ideas, themes, or patterns.","What is Coding?",text,,No,2
+ANALYSIS,400,"The point in data collection when no new insights or themes are emerging from the data.","What is Thematic Saturation?",text,,No,2
+ANALYSIS,600,"A method for systematically analyzing the content of communications, such as text, images, or videos.","What is Content Analysis?",text,,No,2
+ANALYSIS,800,"The process of organizing and interpreting qualitative data to identify themes and patterns.","What is Thematic Analysis?",text,,No,2
+ANALYSIS,1000,"A detailed, rich description of a person, place, or event in a qualitative research report.","What is a Thick Description?",text,,No,2
+SAMPLING,200,"A non-probability technique where participants are selected based on the researcher's judgment of who would be most informative.","What is Purposive Sampling (or Judgmental Sampling)?",text,,No,2
+SAMPLING,400,"A technique where existing study subjects recruit future subjects from among their acquaintances.","What is Snowball Sampling?",text,,No,2
+SAMPLING,600,"A non-probability technique where researchers select participants who are easily accessible.","What is Convenience Sampling?",text,,No,2
+SAMPLING,800,"In qualitative research, this refers to the number of participants or data sources, which is typically much smaller than in quantitative studies.","What is Sample Size?",text,,No,2
+SAMPLING,1000,"A type of purposive sampling where researchers select cases that are particularly unusual or different to learn from their extremity.","What is Deviant Case Sampling?",text,,No,2
+ETHICS,200,"The practice of keeping participants' identities and personal information private and not disclosing it to others.","What is Confidentiality?",text,,No,2
+ETHICS,400,"The ethical requirement to obtain voluntary agreement from participants after they have been fully informed about the research.","What is Informed Consent?",text,,No,2
+ETHICS,600,"The process of concealing the identity of participants so that even the researcher cannot link the data to a specific individual.","What is Anonymity?",text,,No,2
+ETHICS,800,"The ethical principle that emphasizes minimizing harm and maximizing benefits for research participants.","What is Beneficence?",text,,No,2
+ETHICS,1000,"A review committee established to protect the rights and welfare of human research subjects.","What is an Institutional Review Board (IRB)?",text,,No,2

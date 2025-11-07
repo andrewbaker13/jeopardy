@@ -1,10 +1,18 @@
 // --- GLOBAL STATE VARIABLES ---
-let CLUES = []; // Stores all parsed game data from CSV
-let CATEGORIES = []; // Array of category names
+let ALL_CLUES = []; // Stores all parsed game data from CSV
+let ROUND_1_CLUES = [];
+let ROUND_2_CLUES = [];
+let CURRENT_ROUND = 1;
+let CLUES = []; // Clues for the CURRENT round
+let CATEGORIES = []; // Categories for the CURRENT round
 let TEAMS = []; // Array of team objects: [{name: 'Team 1', score: 0}, ...]
+let FINAL_JEOPARDY_CLUE = null;
 let BOARD_STATE = []; // Array tracking which clues (by index) have been played (boolean or index of clue)
+let PERFORMANCE_DATA = {}; // Tracks performance for each clue: { clueIndex: { teamIndex: 'correct'/'incorrect'/'pass' } }
 let GAME_LIBRARY = []; // Stores the list of available default games from the manifest
 let JUDGE_CODE = null; // Stores the secret code for judge mode
+let GAME_START_TIME = null;
+let GAME_END_TIME = null;
 let CURRENT_CLUE_INDEX = -1; // Index of the currently open clue in the CLUES array
 let PENALIZED_TEAMS = []; // Array of team indices that have received a deduction for the current clue.
 
@@ -16,7 +24,8 @@ const CSV_HEADER_MAP = {
     'answer': 'Answer',
     'mediaType': 'MediaType',
     'mediaUrl': 'MediaURL',
-    'dailyDouble': 'DailyDouble'
+    'dailyDouble': 'DailyDouble',
+    'round': 'Round'
 };
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
@@ -37,8 +46,6 @@ const $clueMedia = document.getElementById('clue-media');
 const $revealAnswerButton = document.getElementById('revealAnswerButton');
 const $passClueButton = document.getElementById('passClueButton');
 const $teamScoringButtons = document.getElementById('team-scoring-buttons');
-const $loadCodeInput = document.getElementById('loadCodeInput');
-const $loadGameButton = document.getElementById('loadGameButton');
 const $downloadTemplate = document.getElementById('downloadTemplate');
 const $defaultGameSelect = document.getElementById('defaultGameSelect');
 const $loadDefaultGameButton = document.getElementById('loadDefaultGameButton');
@@ -62,6 +69,18 @@ const $saveGameButton = document.getElementById('saveGameButton');
 const $closeSaveModalButton = document.getElementById('closeSaveModalButton');
 const $saveCodeDisplay = document.getElementById('saveCodeDisplay');
 const $generateSaveCodeButton = document.getElementById('generateSaveCodeButton');
+const $loadPreviousGameButton = document.getElementById('loadPreviousGameButton');
+const $loadGameModal = document.getElementById('load-game-modal');
+const $closeLoadModalButton = document.getElementById('closeLoadModalButton');
+const $loadCodeInput = document.getElementById('loadCodeInput');
+const $loadGameButton = document.getElementById('loadGameButton');
+const $judgeModeInfoModal = document.getElementById('judge-mode-info-modal');
+const $cancelJudgeModeButton = document.getElementById('cancelJudgeModeButton');
+const $proceedToJudgeModeButton = document.getElementById('proceedToJudgeModeButton');
+const $uploadTipsButton = document.getElementById('uploadTipsButton');
+const $uploadTipsModal = document.getElementById('upload-tips-modal');
+const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
+const $newGameButton = document.getElementById('newGameButton');
 
 
 // --- CSV TEMPLATE ---
@@ -108,6 +127,26 @@ const closeDailyDoubleModal = () => {
 };
 
 /**
+ * Checks if the current round is finished and transitions to the next if applicable.
+ */
+const checkForRoundCompletion = () => {
+    const allPlayed = CLUES.every((clue, index) => BOARD_STATE[clue.originalIndex]);
+    if (!allPlayed) return;
+
+    if (CURRENT_ROUND === 1 && ROUND_2_CLUES.length > 0) {
+        CURRENT_ROUND = 2;
+        alert("Round 1 is complete! Starting Double Jeopardy!");
+        // Reset game board for the new round
+        CLUES = ROUND_2_CLUES;
+        CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
+        renderBoard();
+    } else {
+        // Game is over
+        showFinalStandings();
+    }
+};
+
+/**
  * Marks a clue as played on the board and updates the state.
  * @param {number} clueIndex - The index of the clue in the CLUES array.
  */
@@ -120,6 +159,10 @@ const markClueAsPlayed = (clueIndex) => {
         tile.textContent = ''; // Clear dollar amount
         tile.onclick = null; // Disable further clicks
     }
+
+    // Check for completion after a brief delay to allow UI to update
+    setTimeout(checkForRoundCompletion, 100);
+    saveGameStateToSession();
 };
 
 /**
@@ -155,6 +198,7 @@ const updateScoreboard = () => {
     });
 
     // This function is now only for the scoreboard itself. Button visibility is handled in startGame.
+    saveGameStateToSession();
 };
 
 /**
@@ -166,7 +210,7 @@ const renderBoard = (isJudgeMode = false) => {
     $gameBoard.innerHTML = '';
     $gameBoard.style.setProperty('--num-categories', CATEGORIES.length);
 
-    const numCluesPerCategory = CLUES.length / CATEGORIES.length;
+    const numCluesPerCategory = CLUES.length > 0 ? CLUES.length / CATEGORIES.length : 0;
 
     // 1. Create Category Headers
     CATEGORIES.forEach(category => {
@@ -191,12 +235,12 @@ const renderBoard = (isJudgeMode = false) => {
             const clue = CLUES[clueIndex];
 
             const tile = document.createElement('div');
-            tile.id = `clue-tile-${clueIndex}`;
+            tile.id = `clue-tile-${clue.originalIndex}`;
             tile.className = 'jeopardy-tile jeopardy-blue text-center p-4 font-black text-3xl rounded-lg';
             // Ensure Value is a number before formatting
             tile.textContent = `$${Number(clue.Value).toLocaleString()}`;
 
-            if (BOARD_STATE[clueIndex]) {
+            if (BOARD_STATE[clue.originalIndex]) {
                 tile.classList.add('played');
                 tile.classList.remove('jeopardy-blue');
                 tile.textContent = '';
@@ -287,19 +331,27 @@ const applyConfirmedScoring = () => {
     const value = Number(CLUES[CURRENT_CLUE_INDEX].Value);
 
     TEAMS.forEach((team, index) => {
+        if (!PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex]) {
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex] = {};
+        }
+
         const sel = document.getElementById(`score-select-${index}`);
         if (!sel) return;
         const v = sel.value;
         if (v === 'add') {
             team.score += value;
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][index] = 'Correct';
         } else if (v === 'subtract') {
             team.score -= value;
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][index] = 'Incorrect';
+        } else {
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][index] = 'Did not guess';
         }
     });
 
     updateScoreboard();
     // Mark clue as played and close modal
-    markClueAsPlayed(CURRENT_CLUE_INDEX);
+    markClueAsPlayed(CLUES[CURRENT_CLUE_INDEX].originalIndex);
     closeClueModal();
     CURRENT_CLUE_INDEX = -1;
     PENALIZED_TEAMS = [];
@@ -324,7 +376,7 @@ const handleScore = (action, teamIndex) => {
         // CORRECT: Closes the clue, marks as played, and applies points.
         TEAMS[teamIndex].score += value;
         updateScoreboard();
-        markClueAsPlayed(CURRENT_CLUE_INDEX);
+        markClueAsPlayed(CLUES[CURRENT_CLUE_INDEX].originalIndex);
         closeClueModal();
         CURRENT_CLUE_INDEX = -1;
         PENALIZED_TEAMS = []; // Reset penalties globally
@@ -345,7 +397,6 @@ const handleScore = (action, teamIndex) => {
         // IMPORTANT: The modal stays open, the tile remains un-marked.
     }
 };
-
 /**
  * Extracts the src URL from a full iframe embed code string.
  * @param {string} iframeString - The full HTML <iframe> tag.
@@ -552,8 +603,16 @@ const openClue = (clueIndex) => {
     PENALIZED_TEAMS = []; // Reset penalty tracking for new clue
 
     $clueValueText.textContent = `$${clue.Value.toLocaleString()}`;
-    $clueText.textContent = clue.Clue;
-    $clueAnswer.querySelector('span').textContent = clue.Answer;
+
+    // Use .innerHTML with sanitization to allow for rich HTML content in clues and answers.
+    if (window.DOMPurify) {
+        $clueText.innerHTML = DOMPurify.sanitize(clue.Clue);
+        $clueAnswer.querySelector('span').innerHTML = DOMPurify.sanitize(clue.Answer);
+    } else {
+        // Fallback if DOMPurify fails to load
+        $clueText.textContent = clue.Clue;
+        $clueAnswer.querySelector('span').textContent = clue.Answer;
+    }
 
     // Handle Media Display
     populateClueMedia(clue);
@@ -574,9 +633,16 @@ const openClue = (clueIndex) => {
  */
 const openJudgeClue = (clueIndex) => {
     const clue = CLUES[clueIndex];
-    $judgeClueValueText.textContent = `${clue.Category} - $${clue.Value}`;
-    $judgeClueText.textContent = clue.Clue;
-    $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
+    $judgeClueValueText.textContent = `${clue.Category} - $${clue.Value.toLocaleString()}`;
+
+    // Use .innerHTML with sanitization for rich content in Judge Mode as well.
+    if (window.DOMPurify) {
+        $judgeClueText.innerHTML = DOMPurify.sanitize(clue.Clue);
+        $judgeClueAnswer.querySelector('span').innerHTML = DOMPurify.sanitize(clue.Answer);
+    } else {
+        $judgeClueText.textContent = clue.Clue;
+        $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
+    }
 
     // Re-use the media population logic, but target the judge modal's media container
     populateClueMedia(clue, document.getElementById('judge-clue-media'));
@@ -669,6 +735,10 @@ const renderDailyDoubleScoring = (teamIndex, wager) => {
     correctBtn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg';
     correctBtn.textContent = 'Correct';
     correctBtn.onclick = () => {
+        if (!PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex]) {
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex] = {};
+        }
+        PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][teamIndex] = 'Correct';
         team.score += wager;
         finalizeClue();
     };
@@ -677,6 +747,10 @@ const renderDailyDoubleScoring = (teamIndex, wager) => {
     incorrectBtn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg';
     incorrectBtn.textContent = 'Incorrect';
     incorrectBtn.onclick = () => {
+        if (!PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex]) {
+            PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex] = {};
+        }
+        PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][teamIndex] = 'Incorrect';
         team.score -= wager;
         finalizeClue();
     };
@@ -790,6 +864,12 @@ const populateClueMedia = (clue, mediaContainer = $clueMedia) => {
                 console.warn('Could not load YouTube IFrame API:', err);
             });
         }
+    } else if (mediaType === 'html' && mediaUrl) {
+        // Sanitize the HTML from the MediaURL column to prevent XSS attacks.
+        // This allows for safe rendering of rich content like tables or formatted text.
+        if (window.DOMPurify) {
+            mediaContainer.innerHTML = DOMPurify.sanitize(mediaUrl);
+        }
     }
 };
 
@@ -797,8 +877,13 @@ const populateClueMedia = (clue, mediaContainer = $clueMedia) => {
  * A helper function to finalize a clue after scoring (used by Daily Double and Pass).
  */
 const finalizeClue = () => {
+    // If this is a pass, mark all teams as 'Did not guess'
+    if (!PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex]) {
+        PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex] = {};
+        TEAMS.forEach((_, i) => PERFORMANCE_DATA[CLUES[CURRENT_CLUE_INDEX].originalIndex][i] = 'Did not guess');
+    }
+    markClueAsPlayed(CLUES[CURRENT_CLUE_INDEX].originalIndex);
     updateScoreboard();
-    markClueAsPlayed(CURRENT_CLUE_INDEX);
     closeClueModal();
     CURRENT_CLUE_INDEX = -1;
 };
@@ -819,42 +904,103 @@ const setupClues = (data) => {
         return false;
     }
 
-    // Map and sanitize the data
-    CLUES = data.map(row => ({
+    // 1. Map and sanitize all data from the CSV
+    ALL_CLUES = data.map((row, index) => ({
         Category: row[CSV_HEADER_MAP.category] || '',
-        // Parse value as integer, removing non-numeric characters like '$'
-        Value: parseInt(String(row[CSV_HEADER_MAP.value]).replace(/[$,]/g, '')) || 0,
+        // For Final Jeopardy, the 'Value' is the category name (a string). Otherwise, it's a number.
+        Value: String(row[CSV_HEADER_MAP.round]).toUpperCase() === 'FJ'
+            ? row[CSV_HEADER_MAP.value] || ''
+            : parseInt(String(row[CSV_HEADER_MAP.value]).replace(/[$,]/g, '')) || 0,
         Clue: row[CSV_HEADER_MAP.clue] || '',
         Answer: row[CSV_HEADER_MAP.answer] || '',
         MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
         MediaURL: row[CSV_HEADER_MAP.mediaUrl] || '',
-        DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No'
-    })).filter(clue => clue.Value > 0 && clue.Category); // Ensure rows have value and category
+        DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No',
+        Round: String(row[CSV_HEADER_MAP.round]).toUpperCase() || '0',
+        originalIndex: index // Keep track of the original position for BOARD_STATE
+    })).filter(clue => (clue.Value && clue.Category) || clue.Round === 'FJ'); // Keep valid clues or FJ
 
-    // Determine unique categories
+    // Find and store the Final Jeopardy clue separately
+    FINAL_JEOPARDY_CLUE = ALL_CLUES.find(c => c.Round === 'FJ') || null;
+    ALL_CLUES = ALL_CLUES.filter(c => c.Round !== 'FJ');
+    
+    // 2. Separate clues into rounds
+    ROUND_1_CLUES = ALL_CLUES.filter(c => c.Round === '1');
+    ROUND_2_CLUES = ALL_CLUES.filter(c => c.Round === '2');
+
+    // 3. Validate the rounds
+    const isRound1Valid = ROUND_1_CLUES.length === 25 || ROUND_1_CLUES.length === 0;
+    const isRound2Valid = ROUND_2_CLUES.length === 25 || ROUND_2_CLUES.length === 0;
+
+    // Helper function to find category count issues
+    const findCategoryErrors = (clues, roundNum) => {
+        if (clues.length === 0) return null;
+        const categoryCounts = clues.reduce((acc, clue) => {
+            const cat = clue.Category.trim(); // Use trimmed category name
+            acc[cat] = (acc[cat] || 0) + 1;
+            return acc;
+        }, {});
+
+        const categories = Object.keys(categoryCounts);
+        if (categories.length !== 5) {
+            return `In Round ${roundNum}, found ${categories.length} categories instead of the required 5. The categories found were: ${categories.join(', ')}.`;
+        }
+
+        for (const cat of categories) {
+            if (categoryCounts[cat] !== 5) {
+                return `In Round ${roundNum}, category "${cat}" has ${categoryCounts[cat]} clues instead of the required 5.`;
+            }
+        }
+
+        return null;
+    };
+
+    // New, more detailed validation logic
+    if (ROUND_1_CLUES.length === 0 && ROUND_2_CLUES.length === 0) {
+        $setupMessage.textContent = "CSV Error: No valid clues for Round 1 or Round 2 were found in the file.";
+        $setupMessage.classList.remove('hidden');
+        return false;
+    }
+
+    if (!isRound1Valid) {
+        let errorMsg = findCategoryErrors(ROUND_1_CLUES, 1);
+        if (!errorMsg) {
+            errorMsg = `Round 1 is incomplete. Found ${ROUND_1_CLUES.length} clues instead of the required 25.`;
+        }
+        $setupMessage.textContent = `CSV Error: ${errorMsg}`;
+        $setupMessage.classList.remove('hidden');
+        return false;
+    }
+
+    if (!isRound2Valid) {
+        let errorMsg = findCategoryErrors(ROUND_2_CLUES, 2);
+        if (!errorMsg) {
+            errorMsg = `Round 2 is incomplete. Found ${ROUND_2_CLUES.length} clues instead of the required 25.`;
+        }
+        $setupMessage.textContent = `CSV Error: ${errorMsg}`;
+        $setupMessage.classList.remove('hidden');
+        return false;
+    }
+
+    // 4. Set the initial game state
+    if (ROUND_1_CLUES.length > 0) {
+        CURRENT_ROUND = 1;
+        CLUES = ROUND_1_CLUES;
+    } else {
+        CURRENT_ROUND = 2;
+        CLUES = ROUND_2_CLUES;
+    }
     CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
 
-    const totalClues = CLUES.length;
-    const numCategories = CATEGORIES.length;
+    // 5. Initialize board state for ALL clues
+    BOARD_STATE = new Array(ALL_CLUES.length).fill(false);
 
-    // Final validation checks
-    if (numCategories === 0 || totalClues === 0) {
-        $setupMessage.textContent = "Error: No valid clues or categories found in the file.";
-        $setupMessage.classList.remove('hidden');
-        return false;
+    // Show Final Jeopardy button if a clue exists for it
+    if (FINAL_JEOPARDY_CLUE) {
+        $finalJeopardyButton.classList.remove('hidden');
+    } else {
+        $finalJeopardyButton.classList.add('hidden');
     }
-
-    if (totalClues % numCategories !== 0) {
-        // Error: Non-uniform board (e.g., 5 cats but one only has 4 questions)
-        $setupMessage.textContent = `Error: Clue file requires the same number of questions per category. Found ${totalClues} total clues across ${numCategories} categories.`;
-        $setupMessage.classList.remove('hidden');
-        CLUES = [];
-        CATEGORIES = [];
-        return false;
-    }
-
-    // Initialize board state (all unplayed)
-    BOARD_STATE = new Array(CLUES.length).fill(false);
 
     return true;
 };
@@ -866,7 +1012,9 @@ const setupClues = (data) => {
  * @param {Array<boolean>} [initialBoardState=[]] - Optional array of played status for loading state.
  */
 const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
-
+    
+    GAME_START_TIME = new Date();
+    PERFORMANCE_DATA = {}; // Reset performance data for a new game
     // 1. Initialize Teams
     TEAMS = [];
     for (let i = 0; i < numTeams; i++) {
@@ -877,7 +1025,7 @@ const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
     }
 
     // 2. Load Board State if provided
-    if (initialBoardState.length === CLUES.length) {
+    if (initialBoardState.length === ALL_CLUES.length) {
         BOARD_STATE = initialBoardState;
     }
 
@@ -888,6 +1036,122 @@ const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
 
     updateScoreboard();
     renderBoard();
+};
+
+// --- FINAL JEOPARDY LOGIC ---
+const $fjScreen = document.getElementById('final-jeopardy-screen');
+const $fjStep1 = document.getElementById('fj-step-1-category');
+const $fjStep2 = document.getElementById('fj-step-2-wager');
+const $fjStep3 = document.getElementById('fj-step-3-clue');
+const $fjCategoryText = document.getElementById('fj-category-text');
+const $fjWagerList = document.getElementById('fj-wager-list');
+const $fjClueText = document.getElementById('fj-clue-text');
+const $fjAnswerContainer = document.getElementById('fj-answer-container');
+const $fjAnswerText = document.getElementById('fj-answer-text');
+const $fjScoringList = document.getElementById('fj-scoring-list');
+
+const startFinalJeopardy = () => {
+    if (!FINAL_JEOPARDY_CLUE) return;
+
+    // Hide main game board and controls
+    $gameBoard.classList.add('hidden');
+    $gameControlsContainer.classList.add('hidden');
+
+    // Show FJ screen and Step 1
+    $fjScreen.classList.remove('hidden');
+    $fjScreen.classList.add('flex');
+    $fjStep1.classList.remove('hidden');
+    $fjStep2.classList.add('hidden');
+    $fjStep3.classList.add('hidden');
+
+    // Populate Category
+    $fjCategoryText.textContent = FINAL_JEOPARDY_CLUE.Value; // We use 'Value' field for FJ Category
+};
+
+const proceedToWager = () => {
+    $fjStep1.classList.add('hidden');
+    $fjStep2.classList.remove('hidden');
+
+    $fjWagerList.innerHTML = '';
+    TEAMS.forEach((team, index) => {
+        const maxWager = Math.max(0, team.score);
+        const wagerRow = document.createElement('div');
+        wagerRow.className = 'grid grid-cols-3 items-center gap-4 text-white';
+        const displayName = team.name && String(team.name).trim() ? team.name : `Team ${index + 1}`;
+        wagerRow.innerHTML = `
+            <label for="fj-wager-${index}" class="text-lg text-right">${displayName}</label>
+            <input type="number" id="fj-wager-${index}" min="0" max="${maxWager}" placeholder="Wager (max: ${maxWager.toLocaleString()})" class="col-span-2 bg-gray-700 text-white p-2 rounded border border-gray-600">
+        `;
+        $fjWagerList.appendChild(wagerRow);
+    });
+};
+
+const lockWagersAndShowClue = () => {
+    // Store wagers and validate them
+    let allWagersValid = true;
+    TEAMS.forEach((team, index) => {
+        const input = document.getElementById(`fj-wager-${index}`);
+        const wager = parseInt(input.value, 10);
+        const maxWager = Math.max(0, team.score);
+
+        if (isNaN(wager) || wager < 0 || wager > maxWager) {
+            alert(`Invalid wager for ${team.name}. Please enter a number between 0 and ${maxWager}.`);
+            allWagersValid = false;
+        } else {
+            team.wager = wager; // Store wager on the team object
+        }
+    });
+
+    if (!allWagersValid) return;
+
+    // Proceed to show clue
+    $fjStep2.classList.add('hidden');
+    $fjStep3.classList.remove('hidden');
+    $fjAnswerContainer.classList.add('hidden');
+    document.getElementById('fj-reveal-answer').classList.remove('hidden');
+
+    $fjClueText.innerHTML = DOMPurify.sanitize(FINAL_JEOPARDY_CLUE.Clue);
+};
+
+const revealFinalAnswer = () => {
+    document.getElementById('fj-reveal-answer').classList.add('hidden');
+    $fjAnswerContainer.classList.remove('hidden');
+    $fjAnswerText.innerHTML = DOMPurify.sanitize(FINAL_JEOPARDY_CLUE.Answer);
+
+    // Render scoring buttons
+    $fjScoringList.innerHTML = '';
+    TEAMS.forEach((team, index) => {
+        const displayName = team.name && String(team.name).trim() ? team.name : `Team ${index + 1}`;
+        const scoringRow = document.createElement('div');
+        scoringRow.className = 'flex justify-between items-center p-2 bg-gray-800 rounded';
+        scoringRow.innerHTML = `
+            <span class="text-white">${displayName} (Wager: $${team.wager.toLocaleString()})</span>
+            <div class="flex gap-2">
+                <button onclick="scoreFinalJeopardy(${index}, true)" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded">Correct</button>
+                <button onclick="scoreFinalJeopardy(${index}, false)" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded">Incorrect</button>
+                    </div>
+        `;
+        $fjScoringList.appendChild(scoringRow);
+    });
+};
+
+const scoreFinalJeopardy = (teamIndex, isCorrect) => {
+    const team = TEAMS[teamIndex];
+    if (team.fjScored) return; // Prevent scoring the same team twice
+
+    team.score += isCorrect ? team.wager : -team.wager;
+    team.fjScored = true; // Mark this team as scored
+    updateScoreboard();
+
+    // Visually disable the buttons for this team
+    const buttons = $fjScoringList.children[teamIndex].querySelectorAll('button');
+    buttons.forEach(b => { b.disabled = true; b.classList.add('opacity-50', 'cursor-not-allowed'); });
+
+    // Check if all teams have been scored
+    const allScored = TEAMS.every(t => t.fjScored);
+    if (allScored) {
+        document.getElementById('fj-finish-game').classList.remove('hidden');
+    }
 };
 
 // --- JUDGE MODE LOGIC ---
@@ -974,25 +1238,42 @@ const saveAdvancedEdits = () => {
  * Renders and displays the final standings screen.
  */
 const showFinalStandings = () => {
+    $fjScreen.classList.add('hidden'); // Ensure Final Jeopardy screen is hidden
+    GAME_END_TIME = new Date();
     // Hide all game elements
-    $gameBoard.classList.add('hidden');
-    $scoreboard.classList.add('hidden');
-    $saveStateContainer.classList.add('hidden');
+    clearSessionState();
     $gameControlsContainer.classList.add('hidden');
+
+    // --- It's time to party! ---
+    if (window.confetti) {
+        // A little burst from the center
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+        // And a continuous rain
+        const duration = 5 * 1000;
+        const end = Date.now() + duration;
+        (function frame() { if (Date.now() < end) { confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } }); confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } }); requestAnimationFrame(frame); } }());
+    }
 
     // Sort teams by score in descending order
     const sortedTeams = [...TEAMS].sort((a, b) => b.score - a.score);
 
     const standingsList = document.getElementById('standings-list');
+    const winnerContainer = document.getElementById('winner-container');
     standingsList.innerHTML = '';
+    winnerContainer.innerHTML = '';
 
     sortedTeams.forEach((team, index) => {
         const scoreClass = team.score >= 0 ? 'text-green-400' : 'text-red-400';
         const displayName = team.name && String(team.name).trim() ? team.name : `Team ${index + 1}`;
 
         if (index === 0) { // The Winner
-            standingsList.innerHTML += `
-                <div class="bg-yellow-600 text-gray-900 p-4 rounded-lg shadow-lg">
+            winnerContainer.innerHTML = `
+                <div class="relative bg-yellow-600 text-gray-900 p-4 rounded-lg shadow-lg">
+                    <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHBxM3g1b2VsMnJ5NnV6NWIzaGdnYjU4YWk3dGtnNTJ3ZWFyejl6cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4GUSoSoFHfs4HuLPf2/giphy.gif" alt="Dancing Capybara" class="absolute -bottom-4 -right-4 w-24 h-24 opacity-80" />
                     <div class="text-2xl font-bold">🏆 WINNER 🏆</div>
                     <div class="text-4xl font-extrabold mt-2">${displayName}</div>
                     <div class="text-3xl font-bold mt-1">${team.score.toLocaleString()}</div>
@@ -1012,17 +1293,146 @@ const showFinalStandings = () => {
     $finalStandingsScreen.classList.add('flex');
 };
 
+/**
+ * Generates and downloads a CSV performance report.
+ */
+const downloadPerformanceReport = () => {
+    const metaDataRows = [];
+    metaDataRows.push(['Game Title', $gameTitle.textContent]);
+    if (GAME_START_TIME) {
+        metaDataRows.push(['Date', GAME_START_TIME.toLocaleDateString()]);
+        metaDataRows.push(['Game Started', GAME_START_TIME.toLocaleTimeString()]);
+    }
+    if (GAME_END_TIME) {
+        metaDataRows.push(['Game Ended', GAME_END_TIME.toLocaleTimeString()]);
+    }
+    metaDataRows.push(['Number of Teams', TEAMS.length]);
+
+    // Main performance data headers
+    const headers = ['Category', 'Value', 'Clue'];
+    const teamNames = TEAMS.map((team, i) => team.name || `Team ${i + 1}`);
+    headers.push(...teamNames);
+
+    // --- Main performance data rows ---
+    const allGameClues = [...ROUND_1_CLUES, ...ROUND_2_CLUES];
+    if (FINAL_JEOPARDY_CLUE) {
+        // Add a simplified representation for the report
+        allGameClues.push({ ...FINAL_JEOPARDY_CLUE, Category: 'FINAL JEOPARDY', Value: 'N/A' });
+    }
+
+    const rows = allGameClues.map(clue => {
+        const row = [
+            clue.Category,
+            clue.Value,
+            clue.Clue.replace(/"/g, '""') // Escape double quotes in clue text
+        ];
+
+        const performance = PERFORMANCE_DATA[clue.originalIndex];
+        
+        teamNames.forEach((_, teamIndex) => {
+            if (performance && performance[teamIndex]) {
+                row.push(performance[teamIndex]);
+            } else {
+                row.push('Not Played');
+            }
+        });
+        return row;
+    });
+
+    // Combine metadata and performance data into a single CSV string
+    const metaCsv = metaDataRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const performanceCsv = [headers, ...rows].map(e => e.map(cell => `"${cell}"`).join(',')).join('\n');
+    const csvContent = `${metaCsv}\n\n${performanceCsv}`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "jeopardy_performance_report.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// --- SESSION PERSISTENCE LOGIC ---
+
+/**
+ * Clears the saved game state from sessionStorage.
+ */
+const clearSessionState = () => {
+    sessionStorage.removeItem('jeopardyGameState');
+};
+
+/**
+ * Saves the current game state to sessionStorage.
+ */
+const saveGameStateToSession = () => {
+    // Only save if a game is active (i.e., the setup screen is hidden).
+    const isGameActive = $setupScreen.classList.contains('hidden');
+    if (!isGameActive || TEAMS.length === 0 || ALL_CLUES.length === 0) {
+        return;
+    }
+
+    try {
+        const gameState = {
+            allClues: ALL_CLUES,
+            round1Clues: ROUND_1_CLUES,
+            round2Clues: ROUND_2_CLUES,
+            currentRound: CURRENT_ROUND,
+            teams: TEAMS,
+            boardState: BOARD_STATE,
+            gameTitle: $gameTitle.textContent
+        };
+        sessionStorage.setItem('jeopardyGameState', JSON.stringify(gameState));
+    } catch (e) {
+        console.error("Could not save game state to session storage:", e);
+    }
+};
+
+/**
+ * Checks for and restores a game state from sessionStorage on page load.
+ */
+const loadGameStateFromSession = () => {
+    try {
+        const savedStateJSON = sessionStorage.getItem('jeopardyGameState');
+        if (!savedStateJSON) return;
+
+        const savedState = JSON.parse(savedStateJSON);
+
+        // Restore all state variables
+        ALL_CLUES = savedState.allClues;
+        ROUND_1_CLUES = savedState.round1Clues;
+        ROUND_2_CLUES = savedState.round2Clues;
+        CURRENT_ROUND = savedState.currentRound;
+        CLUES = CURRENT_ROUND === 1 ? ROUND_1_CLUES : ROUND_2_CLUES;
+        CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
+        $gameTitle.textContent = savedState.gameTitle;
+
+        // Start the game with the restored data
+        startGame(savedState.teams.length, savedState.teams.map(t => t.score), savedState.boardState);
+        // Restore team names after starting
+        TEAMS.forEach((team, i) => team.name = savedState.teams[i].name);
+        updateScoreboard(); // Final update with correct names
+
+    } catch (e) {
+        console.error("Could not load game state from session storage:", e);
+        clearSessionState(); // Clear corrupted data
+    }
+};
+
 // --- LOAD HANDLERS ---
 
 /**
  * Loads the game data from a file, parses it, and enables the start button.
  */
 const loadGameFromFile = (file) => {
+    clearSessionState(); // Clear previous session when loading a new file
     // Reset to default title in case the new file doesn't have one
     JUDGE_CODE = null;
     $judgeModeContainer.classList.add('hidden');
 
-    if ($gameTitle) $gameTitle.textContent = 'Professor Jeopardy!';
+    if ($gameTitle) $gameTitle.textContent = "Dr. Baker's Marketing Jeopardy-O-Matic!";
 
     Papa.parse(file, {
         header: false, // We need to manually handle headers to check for a title row
@@ -1065,12 +1475,34 @@ const loadGameFromFile = (file) => {
                 return obj;
             });
 
-            // 4. Setup clues with the formatted data
+            // 5. Setup clues with the formatted data
             if (setupClues(formattedData)) {
                 $startGameButton.disabled = false;
-                $setupMessage.classList.add('hidden');
+                $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+                $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+                
+                let roundInfo = '';
+                if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
+                    roundInfo = 'This is a 2-round game.';
+                } else if (ROUND_1_CLUES.length > 0) {
+                    roundInfo = 'This is a 1-round game (Round 1).';
+                } else if (ROUND_2_CLUES.length > 0) {
+                    roundInfo = 'This is a 1-round game (Round 2).';
+                } else {
+                    roundInfo = 'This is a 1-round game.';
+                }
+
+                if (FINAL_JEOPARDY_CLUE) {
+                    roundInfo += ' Final Jeopardy is available.';
+                }
+
+                $setupMessage.textContent = `Game loaded successfully! ${roundInfo}`;
+                $setupMessage.classList.remove('hidden', 'text-red-400');
+                $setupMessage.classList.add('text-green-400');
             } else {
                 $startGameButton.disabled = true;
+                $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+                $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
             }
         },
         error: function (error) {
@@ -1086,6 +1518,7 @@ const loadGameFromFile = (file) => {
  * Loads the default game data string and prepares the game.
  */
 const loadDefaultGame = async () => {
+    clearSessionState(); // Clear previous session when loading a new game
     JUDGE_CODE = null;
     $judgeModeContainer.classList.add('hidden');
 
@@ -1114,18 +1547,27 @@ const loadDefaultGame = async () => {
     });
 
     let data = results.data;
-    let headerRowIndex = 0;
+    let headerRowIndex = -1;
+    let nextRow = 0;
 
-    // Check for Judge Code on the first line of library files
-    if (data.length > 0 && data[0][0] === 'JudgeCode') {
-        JUDGE_CODE = data[0][1] ? String(data[0][1]).trim() : null;
+    // Check for GameTitle on the first line
+    if (data.length > nextRow && data[nextRow][0] === 'GameTitle') {
+        // This is handled by the line that sets the title from the manifest, but we need to advance the row pointer
+        nextRow++;
+    }
+
+    // Check for Judge Code on the next line
+    if (data.length > nextRow && data[nextRow][0] === 'JudgeCode') {
+        JUDGE_CODE = data[nextRow][1] ? String(data[nextRow][1]).trim() : null;
         if (JUDGE_CODE) {
             $judgeModeContainer.classList.remove('hidden');
         }
-        headerRowIndex = 1;
+        nextRow++;
     }
 
     // Manually construct data objects to pass to setupClues
+    headerRowIndex = data.findIndex((row, index) => index >= nextRow && row[0] === 'Category');
+    if (headerRowIndex === -1) headerRowIndex = nextRow; // Fallback
     const headers = data[headerRowIndex];
     const clueDataRows = data.slice(headerRowIndex + 1);
 
@@ -1139,14 +1581,33 @@ const loadDefaultGame = async () => {
 
     if (setupClues(formattedData)) {
         $startGameButton.disabled = false;
-        $setupMessage.textContent = "Default game loaded successfully.";
-        $setupMessage.classList.remove('hidden');
-        $setupMessage.classList.remove('text-red-400');
+        $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+        $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+
+        let roundInfo = '';
+        if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
+            roundInfo = 'This is a 2-round game.';
+        } else if (ROUND_1_CLUES.length > 0) {
+            roundInfo = 'This is a 1-round game (Round 1).';
+        } else if (ROUND_2_CLUES.length > 0) {
+            roundInfo = 'This is a 1-round game (Round 2).';
+        } else {
+            roundInfo = 'This is a 1-round game.';
+        }
+
+        if (FINAL_JEOPARDY_CLUE) {
+            roundInfo += ' Final Jeopardy is available.';
+        }
+
+        $setupMessage.textContent = `Game loaded successfully! ${roundInfo}`;
+        $setupMessage.classList.remove('hidden', 'text-red-400');
         $setupMessage.classList.add('text-green-400');
     } else {
         $startGameButton.disabled = true;
-        $setupMessage.textContent = "Error loading default game.";
-        $setupMessage.classList.remove('hidden');
+        $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+        $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+        // The detailed error message is already set by setupClues(), so we just ensure it's visible.
+        $setupMessage.classList.remove('hidden', 'text-green-400');
         $setupMessage.classList.add('text-red-400');
     }
     } catch (error) {
@@ -1166,7 +1627,7 @@ const loadDefaultGame = async () => {
  */
 const generateSaveCode = () => {
     try {
-        const title = $gameTitle ? $gameTitle.textContent : 'Professor Jeopardy!';
+        const title = $gameTitle ? $gameTitle.textContent : "Dr. Baker's Marketing Jeopardy-O-Matic!";
         const state = {
             c: CATEGORIES, // Categories
             d: CLUES, // Clue Data
@@ -1206,7 +1667,7 @@ const loadSaveCode = () => {
         // Restore global state
         CATEGORIES = state.c;
         CLUES = state.d;
-        const numTeams = state.t;
+        const numTeams = state.t; // This needs to be smarter for multi-round games
         const scores = state.s;
         const boardState = state.p;
 
@@ -1307,7 +1768,35 @@ if ($closeSaveModalButton) {
     $closeSaveModalButton.addEventListener('click', () => $saveGameModal.classList.add('hidden'));
 }
 
+$loadPreviousGameButton.addEventListener('click', () => {
+    $loadGameModal.classList.remove('hidden');
+    $loadGameModal.classList.add('flex');
+});
+
+$closeLoadModalButton.addEventListener('click', () => {
+    $loadGameModal.classList.add('hidden');
+    $loadGameModal.classList.remove('flex');
+});
+
+if ($uploadTipsButton) {
+    $uploadTipsButton.addEventListener('click', () => {
+        if ($uploadTipsModal) $uploadTipsModal.classList.remove('hidden');
+    });
+}
+const $closeUploadTipsButton = document.getElementById('closeUploadTipsButton');
+if ($closeUploadTipsButton) {
+    $closeUploadTipsButton.addEventListener('click', () => $uploadTipsModal.classList.add('hidden'));
+}
+
 $judgeModeButton.addEventListener('click', () => {
+    $judgeModeInfoModal.classList.remove('hidden');
+    $judgeModeInfoModal.classList.add('flex');
+});
+
+$cancelJudgeModeButton.addEventListener('click', () => $judgeModeInfoModal.classList.add('hidden'));
+
+$proceedToJudgeModeButton.addEventListener('click', () => {
+    $judgeModeInfoModal.classList.add('hidden');
     const enteredCode = prompt('Enter the 6-digit code for Judge Mode:');
     if (enteredCode && JUDGE_CODE && enteredCode === JUDGE_CODE) {
         startJudgeMode();
@@ -1351,5 +1840,34 @@ $passClueButton.addEventListener('click', () => {
     PENALIZED_TEAMS = [];
 });
 
+if ($newGameButton) {
+    $newGameButton.addEventListener('click', () => {
+        if (confirm('Are you sure you want to end this game and return to the setup screen? All progress will be lost.')) {
+            // Clear the session state and reload the page for a guaranteed fresh start.
+            clearSessionState();
+            window.location.reload();
+        }
+    });
+}
+
+if ($finalJeopardyButton) {
+    $finalJeopardyButton.addEventListener('click', () => {
+        if (confirm('Are you sure you want to proceed to Final Jeopardy? The main game board will be disabled.')) {
+            startFinalJeopardy();
+        }
+    });
+}
+document.getElementById('fj-proceed-to-wager').addEventListener('click', proceedToWager);
+document.getElementById('fj-lock-wagers').addEventListener('click', lockWagersAndShowClue);
+document.getElementById('fj-reveal-answer').addEventListener('click', revealFinalAnswer);
+document.getElementById('fj-finish-game').addEventListener('click', () => {
+    // Reset the scored flag for all teams before showing standings
+    TEAMS.forEach(t => t.fjScored = false);
+    showFinalStandings();
+});
+document.getElementById('downloadReportButton').addEventListener('click', downloadPerformanceReport);
+
 // --- INITIALIZATION ---
+// Check for a saved game on page load.
+loadGameStateFromSession();
 populateDefaultGameSelector();

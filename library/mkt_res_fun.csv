@@ -1,27 +1,28 @@
-JudgeCode,112233,,,,,,
-Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble
-SURVEY DESIGN,200,"A single survey question that asks about two separate issues but only allows for one response, like ""Was the service fast and friendly?""","What is a double-barreled question?",text,,No
-SURVEY DESIGN,400,"This scale, often using pairs of opposite adjectives like 'Modern vs. Traditional', is used to measure brand perception.","What is a Semantic Differential Scale?",text,,No
-SURVEY DESIGN,600,The tendency for respondents to answer questions in a way that will be viewed favorably by others, especially on sensitive topics.,"What is Social Desirability Bias?",text,,No
-SURVEY DESIGN,800,In online surveys, this feature directs respondents to different subsequent questions based on their answer to a previous question.,"What is Skip Logic (or Branching)?",text,,No
-SURVEY DESIGN,1000,This survey method tracks the same group of respondents over time to observe changes in attitudes or behaviors, crucial for brand loyalty studies.,"What is a Longitudinal Study (or Panel Study)?",text,,No
-EXPERIMENTAL DESIGN,200,"In A/B testing an ad, this is the original, unchanged version of the ad that the new version is compared against.","What is the Control?",text,,No
-EXPERIMENTAL DESIGN,400,A type of experiment conducted in a real-world setting, such as testing a new store layout in an actual retail location.,"What is a Field Experiment?",text,,No
-EXPERIMENTAL DESIGN,600,"In this design, the same participants are exposed to all experimental conditions, such as tasting and rating three different soda formulas.","What is a Within-Subjects (or Repeated Measures) Design?",text,,No
-EXPERIMENTAL DESIGN,800,A variable that is not the independent variable but can still influence the outcome of an experiment, like a competitor's sale during your price test.,"What is a Confounding Variable?",text,,No
-EXPERIMENTAL DESIGN,1000,"This experimental design tests multiple factors and their interactions simultaneously, like testing two ad headlines and three images in all combinations.","What is a Factorial Design?",text,,No
-QUALITATIVE METHODS,200,"This research method involves observing and interacting with consumers in their natural environment, like watching how families do their grocery shopping.","What is Ethnography?",text,,No
-QUALITATIVE METHODS,400,"A one-on-one session where a researcher asks a consumer to complete tasks on a website or app to identify usability issues.","What is a Usability Test?",text,,No
-QUALITATIVE METHODS,600,"In qualitative analysis, this is the point where no new themes or insights are emerging from additional interviews or focus groups.","What is Thematic Saturation?",text,,No
-QUALITATIVE METHODS,800,"A technique where participants are asked to collect images, words, or objects to represent their feelings about a topic before an interview.","What is a Pre-task or Homework Assignment?",text,,No
-QUALITATIVE METHODS,1000,"This qualitative approach analyzes text and images in media to understand how a brand, topic, or group is portrayed in culture.","What is Discourse Analysis (or Content Analysis)?",text,,No
-MARKETING ANALYTICS,200,"This metric, calculated as (Revenue - Cost of Goods Sold) / Revenue, measures the profitability of a product before overhead costs.","What is Gross Margin?",text,,No
-MARKETING ANALYTICS,400,"This analysis groups customers into distinct segments based on shared characteristics like demographics, purchase history, or online behavior.","What is Cluster Analysis?",text,,No
-MARKETING ANALYTICS,600,"A statistical method used to determine how much different marketing channels (e.g., social, search, email) contribute to a conversion.","What is Marketing Attribution Modeling?",text,,Yes
-MARKETING ANALYTICS,800,"This analysis, often used by subscription services like Netflix, predicts which customers are at a high risk of canceling their service.","What is Churn Prediction?",text,,No
-MARKETING ANALYTICS,1000,"A technique that analyzes which products are frequently bought together, famously leading to the 'beer and diapers' insight.","What is Market Basket Analysis (or Association Rule Mining)?",text,,No
-ETHICS & PRIVACY,200,"The ethical principle of 'doing no harm' and ensuring that the welfare of research participants is protected.","What is Beneficence?",text,,No
-ETHICS & PRIVACY,400,"When a researcher knows a participant's identity but promises not to disclose it, as opposed to never collecting it in the first place.","What is Confidentiality?",text,,No
-ETHICS & PRIVACY,600,"This U.S. law specifically protects the online privacy of children under the age of 13.","What is COPPA (Children's Online Privacy Protection Act)?",text,,No
-ETHICS & PRIVACY,800,"The practice of collecting only the data that is absolutely necessary to achieve a specific and stated research purpose.","What is Data Minimization?",text,,No
-ETHICS & PRIVACY,1000,"This type of data has had identifiers removed but could potentially be re-identified by combining it with other datasets.","What is Pseudonymous Data?",text,,No
+JudgeCode,112233,,,,,,,
+Category,Value,Clue,Answer,MediaType,MediaURL,DailyDouble,Round
+SURVEY DESIGN,200,"A single survey question that asks about two separate issues but only allows for one response, like 'Was the service fast and friendly?'","What is a double-barreled question?",text,,No,2
+SURVEY DESIGN,400,"This scale, often using pairs of opposite adjectives like 'Modern vs. Traditional', is used to measure brand perception.","What is a Semantic Differential Scale?",text,,No,2
+SURVEY DESIGN,600,"The tendency for respondents to answer questions in a way that will be viewed favorably by others, especially on sensitive topics.","What is Social Desirability Bias?",text,,No,2
+SURVEY DESIGN,800,"In online surveys, this feature directs respondents to different subsequent questions based on their answer to a previous question.","What is Skip Logic (or Branching)?",text,,No,2
+SURVEY DESIGN,1000,"This survey method tracks the same group of respondents over time to observe changes in attitudes or behaviors, crucial for brand loyalty studies.","What is a Longitudinal Study (or Panel Study)?",text,,No,2
+EXPERIMENTAL DESIGN,200,"In A/B testing an ad, this is the original, unchanged version of the ad that the new version is compared against.","What is the Control?",text,,No,2
+EXPERIMENTAL DESIGN,400,"A type of experiment conducted in a real-world setting, such as testing a new store layout in an actual retail location.","What is a Field Experiment?",text,,No,2
+EXPERIMENTAL DESIGN,600,"In this design, the same participants are exposed to all experimental conditions, such as tasting and rating three different soda formulas.","What is a Within-Subjects (or Repeated Measures) Design?",text,,No,2
+EXPERIMENTAL DESIGN,800,"A variable that is not the independent variable but can still influence the outcome of an experiment, like a competitor's sale during your price test.","What is a Confounding Variable?",text,,No,2
+EXPERIMENTAL DESIGN,1000,"This experimental design tests multiple factors and their interactions simultaneously, like testing two ad headlines and three images in all combinations.","What is a Factorial Design?",text,,No,2
+QUALITATIVE METHODS,200,"This research method involves observing and interacting with consumers in their natural environment, like watching how families do their grocery shopping.","What is Ethnography?",text,,No,2
+QUALITATIVE METHODS,400,"A one-on-one session where a researcher asks a consumer to complete tasks on a website or app to identify usability issues.","What is a Usability Test?",text,,No,2
+QUALITATIVE METHODS,600,"In qualitative analysis, this is the point where no new themes or insights are emerging from additional interviews or focus groups.","What is Thematic Saturation?",text,,No,2
+QUALITATIVE METHODS,800,"A technique where participants are asked to collect images, words, or objects to represent their feelings about a topic before an interview.","What is a Pre-task or Homework Assignment?",text,,No,2
+QUALITATIVE METHODS,1000,"This qualitative approach analyzes text and images in media to understand how a brand, topic, or group is portrayed in culture.","What is Discourse Analysis (or Content Analysis)?",text,,No,2
+MARKETING ANALYTICS,200,"This metric, calculated as (Revenue - Cost of Goods Sold) / Revenue, measures the profitability of a product before overhead costs.","What is Gross Margin?",text,,No,2
+MARKETING ANALYTICS,400,"This analysis groups customers into distinct segments based on shared characteristics like demographics, purchase history, or online behavior.","What is Cluster Analysis?",text,,No,2
+MARKETING ANALYTICS,600,"A statistical method used to determine how much different marketing channels (e.g., social, search, email) contribute to a conversion.","What is Marketing Attribution Modeling?",text,,Yes,2
+MARKETING ANALYTICS,800,"This analysis, often used by subscription services like Netflix, predicts which customers are at a high risk of canceling their service.","What is Churn Prediction?",text,,No,2
+MARKETING ANALYTICS,1000,"A technique that analyzes which products are frequently bought together, famously leading to the 'beer and diapers' insight.","What is Market Basket Analysis (or Association Rule Mining)?",text,,No,2
+ETHICS & PRIVACY,200,"The ethical principle of 'doing no harm' and ensuring that the welfare of research participants is protected.","What is Beneficence?",text,,No,2
+ETHICS & PRIVACY,400,"When a researcher knows a participant's identity but promises not to disclose it, as opposed to never collecting it in the first place.","What is Confidentiality?",text,,No,2
+ETHICS & PRIVACY,600,"This U.S. law specifically protects the online privacy of children under the age of 13.","What is COPPA (Children's Online Privacy Protection Act)?",text,,No,2
+ETHICS & PRIVACY,800,"The practice of collecting only the data that is absolutely necessary to achieve a specific and stated research purpose.","What is Data Minimization?",text,,No,2
+ETHICS & PRIVACY,1000,"This type of data has had identifiers removed but could potentially be re-identified by combining it with other datasets.","What is Pseudonymous Data?",text,,No,2
+
