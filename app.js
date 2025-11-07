@@ -1161,6 +1161,7 @@ const scoreFinalJeopardy = (teamIndex, isCorrect) => {
  * Starts the game in Judge Mode (no scores, just the board).
  */
 const startJudgeMode = () => {
+    $setupScreen.classList.add('hidden');
     $gameControlsContainer.classList.add('hidden');
     $judgeModeControls.classList.remove('hidden');
     $judgeModeControls.innerHTML = ''; // Clear previous buttons
