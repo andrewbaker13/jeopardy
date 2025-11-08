@@ -1,0 +1,50 @@
+Stormreach Beholders
+Ironvale Mindflayers
+Crimson Bay Liches
+Frostpeak Tarrasques
+Obsidian Falls Kobolds
+Silverport Owlbears
+Emberhold Mimics
+Shadowfen Gelatinous Cubes
+Twilight Ridge Displacer Beasts
+Ravenrock Hydras
+Driftspire Basilisks
+Ashvale Manticores
+Verdant Hollow Gnolls
+Moonwatch Banshees
+Blackmere Vampires
+Cinderkeep Werewolves
+Duskshore Zombies
+Thornhaven Goblins
+Skyridge Orcs
+Hollowpoint Trolls
+Runegate Giants
+Starforge Djinn
+Blightmoor Efreeti
+Wildspire Succubi
+Duskhaven Rakshasas
+Everglow Chimeras
+Grimvale Wyverns
+Wyrmwatch Dracoliches
+Sunforge Nagas
+Mythport Yeti
+Deepmere Harpies
+Echoreach Krakens
+Tempest Hollow Treants
+Ironspire Dryads
+Fallowbrook Pixies
+Mistvale Myconids
+Oblivion Ridge Sahuagin
+Havenreach Kuo-Toa
+Stormfell Specters
+Glimmerdeep Githyanki
+Frostmere Githzerai
+Brightgate Wraiths
+Soulforge Ogres
+Amberfell Skeletons
+Crowswatch Merfolk
+Runehaven Imps
+Silverkeep Gorgons
+Ashen Bay Hobgoblins
+Moonspire Elementals
+Thunderhold Mindwitnesses

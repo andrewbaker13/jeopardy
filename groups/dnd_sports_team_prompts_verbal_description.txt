@@ -1,0 +1,51 @@
+Monster	Prompt
+Beholder	tPixArFK, pixel art, fantasy monster, Beholder, floating orb, single central eye, ten eyestalks, toothy maw, scaly hide, arcane glow, levitating, alien visage, radial symmetry
+Mind flayer	tPixArFK, pixel art, fantasy monster, Mind flayer, octopus head, face tentacles, purple skin, blank white eyes, psionic aura, flowing robes, slender build, elongated fingers, eldritch styling
+Lich	tPixArFK, pixel art, fantasy monster, Lich, skeletal face, glowing eyes, tattered robes, arcane sigils, bony hands, regal crown, ancient jewelry, necromantic aura
+Tarrasque	tPixArFK, pixel art, fantasy monster, Tarrasque, colossal size, armored carapace, horned head, spiked back, massive claws, fang-filled maw, thick scales, dinosaurian build, towering stance
+Kobold	tPixArFK, pixel art, fantasy monster, Kobold, small stature, reptilian snout, red-brown scales, batlike ears, beady eyes, scrappy gear, lanky limbs, whiplike tail
+Owlbear	tPixArFK, pixel art, fantasy monster, Owlbear, bear body, owl head, hooked beak, feathered ruff, powerful claws, stocky frame, amber eyes, shaggy fur, hybrid anatomy
+Mimic	tPixArFK, pixel art, fantasy monster, Mimic, wooden chest guise, gaping maw, slimy tongue, rows of teeth, adhesive surface, dripping saliva, ambush posture, morphing edges
+Gelatinous cube	tPixArFK, pixel art, fantasy monster, Gelatinous cube, perfect cube, transparent jelly, suspended bones, glossy surface, acidic sheen, soft edges, empty core, ooze texture
+Displacer beast	tPixArFK, pixel art, fantasy monster, Displacer beast, panther body, midnight fur, two shoulder tentacles, spiked pads, six legs look, shimmering outline, predatory stance, elongated form
+Hydra	tPixArFK, pixel art, fantasy monster, Hydra, multiple heads, serpentine necks, emerald scales, gaping jaws, forked tongues, regrowth motif, massive body, coiling posture
+Basilisk	tPixArFK, pixel art, fantasy monster, Basilisk, eight legs, stony scales, crown spines, petrifying gaze, heavy jaw, low stance, reptilian eyes, rough hide
+Manticore	tPixArFK, pixel art, fantasy monster, Manticore, lion body, humanlike face, bat wings, barbed tail, spike quills, predatory grin, tufted mane, powerful paws
+Gnoll	tPixArFK, pixel art, fantasy monster, Gnoll, hyena head, matted fur, lean muscle, yellow eyes, ragged armor, jagged teeth, slouched posture, crudely forged weapons
+Banshee	tPixArFK, pixel art, fantasy monster, Banshee, translucent form, flowing hair, sunken eyes, open wail, torn shroud, pale glow, wispy edges, gaunt features
+Vampire	tPixArFK, pixel art, fantasy monster, Vampire, pale skin, sharp fangs, red eyes, elegant attire, slicked hair, predatory poise, arched brows, shadowed cheekbones
+Werewolf	tPixArFK, pixel art, fantasy monster, Werewolf, wolf muzzle, broad shoulders, furred body, clawed hands, digitigrade legs, glowing eyes, snarling mouth, tensed muscles
+Zombie	tPixArFK, pixel art, fantasy monster, Zombie, rotting flesh, sunken eyes, torn clothes, exposed bone, ashen skin, slack jaw, stiff posture, dragging gait
+Goblin	tPixArFK, pixel art, fantasy monster, Goblin, green skin, big ears, hooked nose, sharp teeth, beady eyes, patchwork armor, spindly limbs, mischievous grin
+Orc	tPixArFK, pixel art, fantasy monster, Orc, gray-green skin, tusks, bulky frame, scarred face, heavy armor, red eyes, broad jaw, battle nicks
+Troll	tPixArFK, pixel art, fantasy monster, Troll, elongated limbs, green rubbery skin, hooked nose, stringy hair, long claws, stooped stance, regenerative scars, gawky proportions
+Giant	tPixArFK, pixel art, fantasy monster, Giant, towering height, massive hands, rough features, burlap garb, stone club, wide stance, shaggy hair, proportionate bulk
+Djinn	tPixArFK, pixel art, fantasy monster, Djinn, blue vapor body, muscular chest, gold jewelry, pointed ears, smoky lower half, glowing eyes, curled mustache, regal posture
+Efreeti	tPixArFK, pixel art, fantasy monster, Efreeti, red skin, flame hair, ember eyes, smoke trail, ornate bracers, charred texture, towering horns, heat shimmer
+Succubus	tPixArFK, pixel art, fantasy monster, Succubus, crimson skin, bat wings, curved horns, barbed tail, alluring pose, sleek silhouette, clawed hands, mesmerizing eyes
+Rakshasa	tPixArFK, pixel art, fantasy monster, Rakshasa, tiger head, reversed hands, silk robes, jeweled trim, predatory smile, gold accents, arched brows, striped fur
+Chimera	tPixArFK, pixel art, fantasy monster, Chimera, lion head, goat head, dragon head, scaled wings, barbed tail, mixed fur, sinewy body, rearing stance
+Wyvern	tPixArFK, pixel art, fantasy monster, Wyvern, two-legged dragon, leathery wings, barbed stinger, ridged back, angular jaw, hooked talons, swept tail, predatory gaze
+Dracolich	tPixArFK, pixel art, fantasy monster, Dracolich, skeletal dragon, tattered wings, glowing eye sockets, cracked bones, necrotic aura, jagged ribs, ashen horns, cadaverous skull
+Naga	tPixArFK, pixel art, fantasy monster, Naga, human torso, snake tail, jewel scales, hooded neck, almond eyes, coiled base, ornate jewelry, serene poise
+Yeti	tPixArFK, pixel art, fantasy monster, Yeti, white fur, ape build, broad shoulders, blue skin hints, curved claws, fanged maw, icicle tufts, stooped lumber
+Harpy	tPixArFK, pixel art, fantasy monster, Harpy, avian wings, taloned feet, wild hair, gaunt face, hooked nose, ragged feathers, arched back, piercing cry pose
+Kraken	tPixArFK, pixel art, fantasy monster, Kraken, colossal tentacles, beaked mouth, bulbous mantle, suction cups, glossy skin, monolithic eye, undulating limbs, ocean leviathan scale
+Treant	tPixArFK, pixel art, fantasy monster, Treant, tree trunk body, bark face, branch arms, rooted feet, leafy crown, knotted wood, sap scars, ancient visage
+Dryad	tPixArFK, pixel art, fantasy monster, Dryad, bark-textured skin, leaf hair, vine adornments, slender form, almond eyes, natural patterns, barefoot grace, forest aura
+Pixie	tPixArFK, pixel art, fantasy monster, Pixie, tiny stature, iridescent wings, pointed ears, petite features, sparkling dust, playful smile, delicate hands, fluttering pose
+Myconid	tPixArFK, pixel art, fantasy monster, Myconid, mushroom cap, porous skin, spore clusters, round eyes, stout frame, pale palette, stubby fingers, calm stance
+Sahuagin	tPixArFK, pixel art, fantasy monster, Sahuagin, shark features, green scales, webbed hands, dorsal fins, needle teeth, gill slits, sleek physique, predatory stare
+Kuo-toa	tPixArFK, pixel art, fantasy monster, Kuo-toa, fishlike head, bulging eyes, slimy skin, wide mouth, webbed feet, crooked posture, dull scales, gaping stare
+Specter	tPixArFK, pixel art, fantasy monster, Specter, translucent body, faceless visage, soft glow, tapered wisp, ragged edges, floating posture, cold aura, hollow core
+Githyanki	tPixArFK, pixel art, fantasy monster, Githyanki, gaunt features, yellow skin, silver armor, topknot hair, psychic blade, stern eyes, high cheekbones, rigid stance
+Githzerai	tPixArFK, pixel art, fantasy monster, Githzerai, lean frame, gray-green skin, shaven head, simple robes, calm gaze, monastic poise, corded muscles, balanced stance
+Wraith	tPixArFK, pixel art, fantasy monster, Wraith, shadow body, hooded cowl, glowing eyes, tattered edges, no legs, cold mist, clawed shadows, skeletal hint
+Ogre	tPixArFK, pixel art, fantasy monster, Ogre, massive gut, thick limbs, tusked jaw, brow ridge, ragged loincloth, club weapon, stubbly hair, slouched stance
+Skeleton	tPixArFK, pixel art, fantasy monster, Skeleton, yellowed bones, empty sockets, ribcage show, bony hands, rusted armor bits, jaw agape, joint gaps, upright stance
+Merfolk	tPixArFK, pixel art, fantasy monster, Merfolk, human upper body, scaled tail, dorsal fin, sleek silhouette, flowing hair, pearlescent scales, webbed fingers, elegant poise
+Imp	tPixArFK, pixel art, fantasy monster, Imp, small devil, red skin, pointed tail, bat wings, tiny horns, mischief grin, clawed toes, beady eyes
+Gorgon	tPixArFK, pixel art, fantasy monster, Gorgon, iron bull, metal plates, glowing eyes, steam snort, spiked crest, heavy hooves, petrifying breath, solid mass
+Hobgoblin	tPixArFK, pixel art, fantasy monster, Hobgoblin, tall goblinoid, ruddy skin, square jaw, discipline posture, lamellar armor, broad shoulders, short tusks, stern gaze
+Elemental	tPixArFK, pixel art, fantasy monster, Elemental, humanoid shape, pure element, swirling mass, glowing core, dynamic edges, formless limbs, textured energy, shifting outline
+Mindwitness	tPixArFK, pixel art, fantasy monster, Mindwitness, beholder variant, central eye, ring tentacles, psionic glow, pale flesh, toothy orifice, bulbous form, symmetry rings

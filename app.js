@@ -13,6 +13,8 @@ let GAME_LIBRARY = []; // Stores the list of available default games from the ma
 let JUDGE_CODE = null; // Stores the secret code for judge mode
 let GAME_START_TIME = null;
 let GAME_END_TIME = null;
+let MARKETING_TEAM_NAMES = []; // Stores random team names from file
+let DND_TEAM_NAMES = []; // Stores random D&D team names from file
 let CURRENT_CLUE_INDEX = -1; // Index of the currently open clue in the CLUES array
 let PENALIZED_TEAMS = []; // Array of team indices that have received a deduction for the current clue.
 
@@ -26,6 +28,17 @@ const CSV_HEADER_MAP = {
     'mediaUrl': 'MediaURL',
     'dailyDouble': 'DailyDouble',
     'round': 'Round'
+};
+
+/**
+ * Populates the team name inputs with "Group 1", "Group 2", ... and starts the game.
+ */
+const useDefaultGroupNames = () => {
+    const numTeams = parseInt($numTeams.value);
+    for (let i = 0; i < numTeams; i++) {
+        const input = document.getElementById(`team-name-input-${i}`);
+        if (input) input.value = `Group ${i + 1}`;
+    }
 };
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
@@ -82,6 +95,12 @@ const $uploadTipsModal = document.getElementById('upload-tips-modal');
 const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
 const $newGameButton = document.getElementById('newGameButton');
 const $judgeModeControls = document.getElementById('judge-mode-controls');
+const $teamNameModal = document.getElementById('team-name-modal');
+const $teamNameList = document.getElementById('team-name-list');
+const $normalNamesButton = document.getElementById('normalNamesButton');
+const $useDefaultNamesButton = document.getElementById('useDefaultNamesButton');
+const $dndNamesButton = document.getElementById('dndNamesButton');
+const $confirmNamesButton = document.getElementById('confirmNamesButton');
 
 
 // --- CSV TEMPLATE ---
@@ -1013,30 +1032,113 @@ const setupClues = (data) => {
  * @param {Array<boolean>} [initialBoardState=[]] - Optional array of played status for loading state.
  */
 const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
-    
-    GAME_START_TIME = new Date();
     PERFORMANCE_DATA = {}; // Reset performance data for a new game
-    // 1. Initialize Teams
-    TEAMS = [];
-    for (let i = 0; i < numTeams; i++) {
-        TEAMS.push({
-            name: `Team ${i + 1}`,
-            score: initialScores[i] !== undefined ? initialScores[i] : 0
-        });
+
+    // Initialize teams if not already configured
+    if (!Array.isArray(TEAMS) || TEAMS.length !== numTeams) {
+        TEAMS = Array.from({ length: numTeams }, (_, i) => ({ name: `Team ${i + 1}`, score: 0 }));
     }
 
-    // 2. Load Board State if provided
-    if (initialBoardState.length === ALL_CLUES.length) {
-        BOARD_STATE = initialBoardState;
+    // Apply initial scores if provided
+    if (Array.isArray(initialScores) && initialScores.length === TEAMS.length) {
+        TEAMS.forEach((t, i) => { t.score = parseInt(initialScores[i], 10) || 0; });
     }
 
-    // 3. Update UI
+    // Accept an initial board state only if it matches total clues
+    if (Array.isArray(initialBoardState) && initialBoardState.length === ALL_CLUES.length) {
+        BOARD_STATE = initialBoardState.slice();
+    } else if (!Array.isArray(BOARD_STATE) || BOARD_STATE.length !== ALL_CLUES.length) {
+        BOARD_STATE = new Array(ALL_CLUES.length).fill(false);
+    }
+
     $setupScreen.classList.add('hidden');
     $gameBoard.classList.remove('hidden');
     $gameControlsContainer.classList.remove('hidden');
 
     updateScoreboard();
     renderBoard();
+};
+
+/**
+ * Opens a modal to allow the user to customize team names.
+ */
+const openTeamNameModal = () => {
+    const numTeams = parseInt($numTeams.value);
+    if (isNaN(numTeams) || numTeams < MIN_TEAMS || numTeams > MAX_TEAMS) {
+        return;
+    }
+
+    $teamNameList.innerHTML = '';
+    for (let i = 0; i < numTeams; i++) {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-3';
+        const label = document.createElement('label');
+        label.htmlFor = `team-name-input-${i}`;
+        label.className = 'text-gray-300 w-20 text-right';
+        label.textContent = `Team ${i + 1}:`;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `team-name-input-${i}`;
+        input.value = `Team ${i + 1}`;
+        input.className = 'flex-1 bg-gray-700 text-white p-2 rounded border border-gray-600';
+        input.maxLength = 32;
+
+        row.appendChild(label);
+        row.appendChild(input);
+        $teamNameList.appendChild(row);
+    }
+
+    $teamNameModal.classList.remove('hidden');
+    $teamNameModal.classList.add('flex');
+};
+
+/**
+ * Populates the team name inputs with random names from the marketing list.
+ * @param {string[]} nameSource - The array of names to draw from.
+ */
+const randomizeTeamNames = (nameSource) => {
+    const numTeams = parseInt($numTeams.value);
+    if (nameSource.length < numTeams) {
+        alert('Not enough unique random names available for the number of teams selected.');
+        return;
+    }
+
+    // Shuffle the array and take the first `numTeams` elements
+    const shuffledNames = [...nameSource].sort(() => 0.5 - Math.random());
+    const selectedNames = shuffledNames.slice(0, numTeams);
+
+    for (let i = 0; i < numTeams; i++) {
+        const input = document.getElementById(`team-name-input-${i}`);
+        if (input) {
+            input.value = selectedNames[i];
+        }
+    }
+};
+
+/**
+ * Confirms the team names from the modal and starts the game.
+ */
+const confirmTeamNamesAndStart = () => {
+    const numTeams = parseInt($numTeams.value);
+    const teamNames = [];
+    for (let i = 0; i < numTeams; i++) {
+        const input = document.getElementById(`team-name-input-${i}`);
+        teamNames.push(input.value.trim() || `Team ${i + 1}`);
+    }
+
+    // 1. Initialize the TEAMS array with the correct names.
+    TEAMS = [];
+    for (let i = 0; i < numTeams; i++) {
+        TEAMS.push({ name: teamNames[i], score: 0 });
+    }
+
+    // 2. Start the game. It will use the TEAMS array we just created.
+    if (typeof $teamNameModal !== 'undefined' && $teamNameModal) {
+        $teamNameModal.classList.add('hidden');
+        $teamNameModal.classList.remove('flex');
+    }
+    startGame(numTeams);
 };
 
 // --- FINAL JEOPARDY LOGIC ---
@@ -1065,8 +1167,8 @@ const startFinalJeopardy = () => {
     $fjStep2.classList.add('hidden');
     $fjStep3.classList.add('hidden');
 
-    // Populate Category
-    $fjCategoryText.textContent = FINAL_JEOPARDY_CLUE.Value; // We use 'Value' field for FJ Category
+    // Populate Category (Value holds the FJ Category)
+    $fjCategoryText.textContent = FINAL_JEOPARDY_CLUE.Value || '';
 };
 
 const proceedToWager = () => {
@@ -1283,6 +1385,31 @@ const showFinalStandings = () => {
     $gameControlsContainer.classList.add('hidden');
 
     // --- It's time to party! ---
+    // Tiny fanfare using Web Audio API (no external audio needed)
+    const _playFanfare = () => {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
+            const now = ctx.currentTime;
+            const notes = [261.63, 329.63, 392.0, 523.25]; // C, E, G, C
+            notes.forEach((f, i) => {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'triangle';
+                o.frequency.value = f;
+                o.connect(g);
+                g.connect(ctx.destination);
+                const t = now + i * 0.12;
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(0.3, t + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+                o.start(t);
+                o.stop(t + 0.32);
+            });
+        } catch (e) { /* ignore */ }
+    };
+
+    _playFanfare();
     if (window.confetti) {
         // A little burst from the center
         confetti({
@@ -1317,9 +1444,37 @@ const showFinalStandings = () => {
                     <div class="text-3xl font-bold mt-1">${team.score.toLocaleString()}</div>
                 </div>
             `;
+            // Replace with an even more dramatic winner card
+            const _sillyTitles = [
+                'Emperor of Insights',
+                'Lord of Likert Scales',
+                'Conqueror of Crosstabs',
+                'Baron of Brand Awareness',
+                'Duke of Data Hygiene',
+                'Wizard of A/B-olition',
+                'Sultan of Segmentation',
+                'Quasi-Experimental Extraordinaire'
+            ];
+            const _title = _sillyTitles[Math.floor(Math.random() * _sillyTitles.length)];
+            winnerContainer.innerHTML = `
+                <div class="relative bg-yellow-500 text-gray-900 p-6 rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="absolute -top-4 -left-4 text-6xl">🎉</div>
+                    <div class="absolute -top-4 -right-4 text-6xl">🎉</div>
+                    <div class="absolute -bottom-4 -left-4 text-6xl">🎉</div>
+                    <div class="absolute -bottom-4 -right-4 text-6xl">🎉</div>
+                    <div class="text-3xl sm:text-4xl font-extrabold winner-glow text-center">ALL HAIL THE GRAND CHAMPION</div>
+                    <div class="mt-2 text-center text-sm font-semibold">aka <span class="italic">${_title}</span></div>
+                    <div class="mt-3 text-center relative">
+                        <span class="absolute -top-8 left-1/2 -translate-x-1/2 text-5xl">👑</span>
+                        <div class="text-5xl sm:text-6xl font-extrabold">${displayName}</div>
+                        <div class="text-3xl sm:text-4xl font-bold mt-1">$${team.score.toLocaleString()}</div>
+                    </div>
+                    <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHBxM3g1b2VsMnJ5NnV6NWIzaGdnYjU4YWk3dGtnNTJ3ZWFyejl6cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4GUSoSoFHfs4HuLPf2/giphy.gif" alt="Dancing Capybara" class="capy-dance absolute -bottom-6 -right-6 w-32 h-32 opacity-90" />
+                </div>
+            `;
         } else { // Other teams
             standingsList.innerHTML += `
-                <div class="bg-gray-700 p-3 rounded-lg flex justify-between items-center">
+                <div class="standings-fade-in bg-gray-700 p-3 rounded-lg flex justify-between items-center">
                     <span class="text-2xl font-bold text-white">${index + 1}. ${displayName}</span>
                     <span class="text-2xl font-semibold ${scoreClass}">${team.score.toLocaleString()}</span>
                 </div>
@@ -1671,7 +1826,8 @@ const generateSaveCode = () => {
             d: CLUES, // Clue Data
             s: TEAMS.map(team => team.score), // Scores
             t: TEAMS.length, // Team count
-            p: BOARD_STATE // Played tiles
+            p: BOARD_STATE, // Played tiles
+            n: TEAMS.map(team => team.name) // Team names
         };
         state.title = title; // Add title to the save state
         // Convert state to JSON, then to Base64
@@ -1708,6 +1864,7 @@ const loadSaveCode = () => {
         const numTeams = state.t; // This needs to be smarter for multi-round games
         const scores = state.s;
         const boardState = state.p;
+        const names = Array.isArray(state.n) ? state.n : null; // Optional team names for backward compatibility
 
         // Restore title
         if ($gameTitle) {
@@ -1717,6 +1874,12 @@ const loadSaveCode = () => {
         // Start the game with the restored state
         $numTeams.value = numTeams; // Update UI
         startGame(numTeams, scores, boardState);
+
+        // If names were saved, restore them now and refresh scoreboard
+        if (names && names.length === TEAMS.length) {
+            TEAMS.forEach((team, i) => team.name = names[i] || team.name);
+            updateScoreboard();
+        }
 
     } catch (e) {
         console.error("Error loading save code:", e);
@@ -1779,15 +1942,46 @@ const populateDefaultGameSelector = async () => {
     }
 };
 
-// --- EVENT LISTENERS ---
+/**
+ * Fetches and parses the list of random team names.
+ */
+const loadMarketingTeamNames = async () => {
+    try {
+        const response = await fetch('groups/Marketing_Team_Names.txt');
+        if (!response.ok) {
+            throw new Error('Failed to fetch team name list.');
+        }
+        const text = await response.text();
+        MARKETING_TEAM_NAMES = text.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+        $normalNamesButton.disabled = MARKETING_TEAM_NAMES.length === 0;
+    } catch (error) {
+        console.error('Could not load marketing team names:', error);
+        $normalNamesButton.disabled = true;
+    }
+};
 
+/**
+ * Fetches and parses the list of random D&D team names.
+ */
+const loadDndTeamNames = async () => {
+    try {
+        const response = await fetch('groups/dnd_names.txt');
+        if (!response.ok) { throw new Error('Failed to fetch D&D team name list.'); }
+        const text = await response.text();
+        DND_TEAM_NAMES = text.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+        $dndNamesButton.disabled = DND_TEAM_NAMES.length === 0;
+    } catch (error) {
+        console.error('Could not load D&D team names:', error);
+        $dndNamesButton.disabled = true;
+    }
+};
+// --- EVENT LISTENERS ---
 // Setup Screen
 $csvFile.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         loadGameFromFile(e.target.files[0]);
     }
 });
-
 $loadDefaultGameButton.addEventListener('click', loadDefaultGame);
 $downloadTemplate.addEventListener('click', downloadTemplate);
 $loadGameButton.addEventListener('click', loadSaveCode);
@@ -1853,14 +2047,7 @@ $finishGameButton.addEventListener('click', () => {
 
 $startGameButton.addEventListener('click', () => {
     const numTeams = parseInt($numTeams.value);
-    if (numTeams >= MIN_TEAMS && numTeams <= MAX_TEAMS) {
-        startGame(numTeams);
-    } else {
-        // We're already preventing this with min/max on the input, but this is a good safeguard.
-        // Using a custom modal/alert would be better, but window.alert is disallowed.
-        // For now, we'll just log it.
-        console.warn(`Invalid team number: ${numTeams}`);
-    }
+    openTeamNameModal();
 });
 
 // Game/Save Controls
@@ -1877,6 +2064,24 @@ $passClueButton.addEventListener('click', () => {
     finalizeClue();
     PENALIZED_TEAMS = [];
 });
+
+// Team Name Modal
+$normalNamesButton.addEventListener('click', () => randomizeTeamNames(MARKETING_TEAM_NAMES));
+$dndNamesButton.addEventListener('click', () => randomizeTeamNames(DND_TEAM_NAMES));
+$confirmNamesButton.addEventListener('click', confirmTeamNamesAndStart);
+$useDefaultNamesButton.addEventListener('click', useDefaultGroupNames);
+// Safer overlay close handler for team-name modal
+(() => {
+    const m = document.getElementById('team-name-modal');
+    if (m) {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) {
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            }
+        });
+    }
+})();
 
 if ($newGameButton) {
     $newGameButton.addEventListener('click', () => {
@@ -1905,7 +2110,25 @@ document.getElementById('fj-finish-game').addEventListener('click', () => {
 });
 document.getElementById('downloadReportButton').addEventListener('click', downloadPerformanceReport);
 
-// --- INITIALIZATION ---
-// Check for a saved game on page load.
-loadGameStateFromSession();
-populateDefaultGameSelector();
+// --- APP INITIALIZATION ---
+
+/**
+ * Main initialization function to set up the application.
+ * This should be called after the DOM is fully loaded.
+ */
+const initializeApp = async () => {
+    // Check for a saved game from a previous session first.
+    loadGameStateFromSession();
+
+    // Asynchronously load necessary game assets.
+    // Using Promise.all to load them concurrently for better performance.
+    await Promise.all([
+        populateDefaultGameSelector(),
+        loadMarketingTeamNames(),
+        loadDndTeamNames()
+    ]);
+};
+
+// Wait for the DOM to be fully loaded before running the initialization.
+// This prevents race conditions where scripts try to access elements that don't exist yet.
+document.addEventListener('DOMContentLoaded', initializeApp);

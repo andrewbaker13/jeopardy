@@ -27,6 +27,25 @@
             <!-- Team Score Cards will be injected here -->
         </div>
 
+        <!-- Team Name Modal -->
+        <div id="team-name-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-lg w-full mx-4 border-2 border-yellow-500">
+                <h3 class="text-2xl font-bold text-yellow-400 mb-4">Set Team Names</h3>
+                <p class="text-sm text-gray-300 mb-4">You can edit the team names below, generate random ones, or use the defaults.</p>
+                <div id="team-name-list" class="space-y-3 max-h-72 overflow-auto mb-4">
+                    <!-- Team name input rows will be injected here -->
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <button id="normalNamesButton" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg">Normal Team Name Generator</button>
+                    <button id="dndNamesButton" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg">Cool and Good DnD Team Name Generator</button>
+                    <button id="useDefaultNamesButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Use Defaults</button>
+                </div>
+                <div class="mt-4">
+                    <button id="confirmNamesButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-lg">Confirm Names & Start Game</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Advanced Edit Modal -->
         <div id="advanced-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
             <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-3xl w-full mx-4 border-2 border-yellow-500">
@@ -179,7 +198,7 @@
                     <button id="closeSaveModalButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
                 <p class="text-gray-300 text-sm mb-4">
-                    This will generate a long text string that you can use to restore your game from its current position. It saves the questions, scores, and all played tiles.
+                    This will generate a long text string that you can use to restore your game from its current position. It saves the questions, team names, scores, and all played tiles.
                 </p>
                 <input type="text" id="saveCodeDisplay" readonly class="w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 text-xs sm:text-sm cursor-pointer" placeholder="Click 'Generate Save Code'"/>
                 <button id="generateSaveCodeButton" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Generate Save Code</button>
