@@ -114,21 +114,57 @@
                     <button id="closeUploadTipsButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
                 <div class="text-gray-300 text-sm space-y-3 max-h-96 overflow-y-auto">
-                    <p>The easiest way to create a custom game is to <strong>download the template CSV and edit it</strong>. This ensures your file has the correct structure. If you create a file from scratch, follow these rules carefully:</p>
+                    <p>There are two easy ways to author a custom game:</p>
                     <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>Use the Template:</strong> Click the "Download Template CSV" button and use that file as your starting point.</li>
-                        <li><strong>Strict Quoting:</strong> To avoid errors, enclose all text fields (`Category`, `Clue`, `Answer`) in double quotes. Example: `"SURVEY DESIGN"`, `"This is the clue."`, `"What is the answer?"`.</li>
-                        <li><strong>Commas in Text:</strong> If your `Clue` or `Answer` contains a comma, you <strong>MUST</strong> enclose that entire cell's text in double quotes. Example: `"This clue which is tricky has a comma."`</li>
-                        <li><strong>Round Structure:</strong> A valid game must have either a complete Round 1, a complete Round 2, or both.
-                            <ul class="list-['-_'] list-inside pl-4">
-                                <li>A complete round consists of exactly <strong>5 categories</strong>.</li>
-                                <li>Each of the 5 categories must have exactly <strong>5 clues</strong>.</li>
+                        <li><strong>CSV Template</strong> (best with Excel/Sheets) — Export as CSV to keep quoting correct.</li>
+                        <li><strong>TSV Template</strong> (best for hand-editing) — Tabs are friendlier when your text has commas/quotes.</li>
+                    </ul>
+                    <p><strong>Auto-detect:</strong> The uploader detects delimiters (CSV or TSV). You’ll see the detected delimiter in the success message.</p>
+                    <p class="mt-2"><strong>Authoring rules</strong> (applies to both CSV and TSV):</p>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li><strong>Rounds:</strong> Provide either Round 1, Round 2, or both. Each round must have 5 categories × 5 clues.</li>
+                        <li><strong>Values:</strong> Round 1 = 100–500; Round 2 = 200–1000.</li>
+                        <li><strong>Daily Doubles:</strong> Put <code>Yes</code> in the <code>DailyDouble</code> column.</li>
+                        <li><strong>Optional Rows:</strong> Add <code>GameTitle</code> and <code>JudgeCode</code> at the very top (see template).</li>
+                    </ul>
+                    <p class="mt-2"><strong>Media</strong> (use the MediaType and MediaURL columns):</p>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li><strong>image</strong>: direct http(s) image URL. Avoid Drive/Dropbox sharing links.</li>
+                        <li><strong>video</strong>: YouTube/Vimeo embeds are supported. Use the EMBED URL (e.g., <code>https://www.youtube.com/embed/VIDEO_ID</code>, <code>https://player.vimeo.com/video/ID</code>).</li>
+                        <li><strong>html</strong>: Raw HTML is sanitized. Allowed basics: p, b, i, em, strong, lists, tables, img[src,alt], a[href,target,rel]. Scripts and javascript: URLs are blocked.</li>
+                    </ul>
+                    <p class="mt-2">Tip: If your text is heavy on commas or quotes, prefer the TSV template.</p>
+                    <p class="mt-1"><strong>Google Sheets note:</strong> Loading from a Google Sheet imports a one-time snapshot of the selected tab at that moment. It does <em>not</em> live-sync with your sheet. To pick up changes, update the sheet and click “Load from Google Sheet” again.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Sheets Help Modal -->
+        <div id="google-sheet-help-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-3xl w-full mx-4 border-2 border-yellow-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-yellow-400">Using Google Sheets</h3>
+                    <button id="closeGoogleSheetHelpButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+                </div>
+                <div class="text-gray-300 text-sm space-y-3 max-h-96 overflow-y-auto">
+                    <p>To load a game directly from Google Sheets, make the sheet (and tab) public and paste its link:</p>
+                    <ol class="list-decimal list-inside space-y-2 pl-2">
+                        <li>Open your sheet and select the tab you want (the URL will include <code>gid=...</code> for that tab).</li>
+                        <li>Make it public:
+                            <ul class="list-disc list-inside pl-4 space-y-1">
+                                <li><strong>Option A:</strong> Share → General access → "Anyone with the link" (Viewer).</li>
+                                <li><strong>Option B (recommended):</strong> File → Publish to the web → Entire document or specific sheet → Publish.</li>
                             </ul>
                         </li>
-                        <li><strong>Point Values:</strong> Round 1 values must be 100-500. Round 2 values must be 200-1000. The template has the correct values already set up.</li>
-                        <li><strong>Daily Doubles:</strong> To make a clue a Daily Double, type `Yes` in its `DailyDouble` column. Otherwise, type `No` or leave it blank.</li>
-                        <li><strong>Media Clues:</strong> `MediaType` can be `image`, `video`, or `html`. For `html`, the `MediaURL` column should contain the raw HTML code you want to display (e.g., `"<p>This is <b>bold</b>.</p>"`).</li>
-                        <li><strong>Optional Rows:</strong> You can add `GameTitle` and `JudgeCode` rows at the very top of your file for customization. See the template for an example.</li>
+                        <li>Copy the sheet link and paste it into the input. The app converts it to a direct export (TSV) URL.</li>
+                    </ol>
+                    <p class="mt-2">Notes:</p>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li>We auto-detect CSV/TSV and validate the template headers/round structure.</li>
+                        <li>Ensure the first rows follow the template (optional <code>GameTitle</code>, optional <code>JudgeCode</code>, then header row).</li>
+                        <li>Only public sheets work. Private sheets will return an access error (401/403).</li>
+                        <li>Pick the correct tab; the URL’s <code>gid</code> determines which tab is loaded.</li>
+                        <li><strong>Snapshot only:</strong> Loading imports a snapshot of the sheet at that moment. It does not live sync. Re-load the link after you make changes.</li>
                     </ul>
                 </div>
             </div>
@@ -142,11 +178,21 @@
                 <!-- Left Column: Custom Game -->
                 <div class="bg-gray-700 p-4 rounded-lg space-y-4 flex flex-col">
                     <h3 class="text-xl font-bold text-yellow-400 text-center">Load Custom Game</h3>
-                    <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" />
+                    <input type="file" id="csvFile" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" />
                     <div class="flex-grow"></div> <!-- Pushes buttons to the bottom -->
                     <div class="space-y-2">
-                        <button id="downloadTemplate" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Download Template CSV</button>
-                        <button id="uploadTipsButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Custom Upload Tips</button>
+                        <button id="customGameMenuButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Make Your Own Custom Game</button>
+                        <div id="customGameMenu" class="hidden space-y-2 pl-2 border-l border-gray-600">
+                            <button id="downloadTemplate" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Download Template CSV</button>
+                            <button id="downloadTemplateTSV" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Download Template TSV</button>
+                            <button id="uploadTipsButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Custom Upload Tips</button>
+                            <div class="pt-2 border-t border-gray-600"></div>
+                            <label class="block text-gray-300 text-sm">Load from Google Sheet (public):</label>
+                            <input id="googleSheetUrlInput" type="url" placeholder="Paste Google Sheet link (public)" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600" />
+                            <a href="https://docs.google.com/spreadsheets/d/1iCO1-LvMTzRg2O2AqUzJ6ALqWIkBi0Mtni9kDuCoVAk/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-300 hover:text-blue-200 underline">See sample Google Sheet</a>
+                            <button id="loadFromGoogleSheetButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Load from Google Sheet</button>
+                            <button id="googleSheetHelpLink" class="text-xs text-blue-300 hover:text-blue-200 underline text-left">How to share/publish a Google Sheet</button>
+                        </div>
                     </div>
                 </div>
 

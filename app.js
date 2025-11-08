@@ -43,6 +43,20 @@ const useDefaultGroupNames = () => {
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
 
+// Shared sanitizer wrapper for rich clue/answer/media HTML
+const sanitizeHTML = (html) => {
+    if (!window.DOMPurify) return html;
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+            'b','i','em','strong','u','p','br','span','div','ul','ol','li','table','thead','tbody','tr','th','td','blockquote','code','pre','img','a'
+        ],
+        ALLOWED_ATTR: ['href','src','alt','title','target','rel','class','style'],
+        ALLOW_DATA_ATTR: false,
+        FORBID_ATTR: ['onerror','onclick','onload'],
+        ALLOWED_URI_REGEXP: /^https?:/i
+    });
+};
+
 // --- DOM REFERENCES ---
 const $gameTitle = document.getElementById('game-title');
 const $csvFile = document.getElementById('csvFile');
@@ -92,6 +106,13 @@ const $cancelJudgeModeButton = document.getElementById('cancelJudgeModeButton');
 const $proceedToJudgeModeButton = document.getElementById('proceedToJudgeModeButton');
 const $uploadTipsButton = document.getElementById('uploadTipsButton');
 const $uploadTipsModal = document.getElementById('upload-tips-modal');
+const $customGameMenuButton = document.getElementById('customGameMenuButton');
+const $customGameMenu = document.getElementById('customGameMenu');
+const $googleSheetUrlInput = document.getElementById('googleSheetUrlInput');
+const $loadFromGoogleSheetButton = document.getElementById('loadFromGoogleSheetButton');
+const $googleSheetHelpLink = document.getElementById('googleSheetHelpLink');
+const $googleSheetHelpModal = document.getElementById('google-sheet-help-modal');
+const $closeGoogleSheetHelpButton = document.getElementById('closeGoogleSheetHelpButton');
 const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
 const $newGameButton = document.getElementById('newGameButton');
 const $judgeModeControls = document.getElementById('judge-mode-controls');
@@ -626,8 +647,8 @@ const openClue = (clueIndex) => {
 
     // Use .innerHTML with sanitization to allow for rich HTML content in clues and answers.
     if (window.DOMPurify) {
-        $clueText.innerHTML = DOMPurify.sanitize(clue.Clue);
-        $clueAnswer.querySelector('span').innerHTML = DOMPurify.sanitize(clue.Answer);
+        $clueText.innerHTML = sanitizeHTML(clue.Clue);
+        $clueAnswer.querySelector('span').innerHTML = sanitizeHTML(clue.Answer);
     } else {
         // Fallback if DOMPurify fails to load
         $clueText.textContent = clue.Clue;
@@ -657,8 +678,8 @@ const openJudgeClue = (clueIndex) => {
 
     // Use .innerHTML with sanitization for rich content in Judge Mode as well.
     if (window.DOMPurify) {
-        $judgeClueText.innerHTML = DOMPurify.sanitize(clue.Clue);
-        $judgeClueAnswer.querySelector('span').innerHTML = DOMPurify.sanitize(clue.Answer);
+        $judgeClueText.innerHTML = sanitizeHTML(clue.Clue);
+        $judgeClueAnswer.querySelector('span').innerHTML = sanitizeHTML(clue.Answer);
     } else {
         $judgeClueText.textContent = clue.Clue;
         $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
@@ -828,17 +849,41 @@ const populateClueMedia = (clue, mediaContainer = $clueMedia) => {
         }
 
         // Create iframe element so we can hook into the YouTube IFrame API for better debugging
-        mediaContainer.innerHTML = ''; // clear
-        const iframe = document.createElement('iframe');
-        iframe.id = 'clue-video-iframe';
-        iframe.src = cleanUrl;
-        iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.style.width = '100%';
-        iframe.style.aspectRatio = '16 / 9';
-        mediaContainer.appendChild(iframe);
+        // Only embed trusted providers (YouTube/Vimeo). Otherwise, show a safe link.
+        try {
+            const u = new URL(cleanUrl);
+            const host = u.hostname || '';
+            const isYouTube = /youtube\.(com|nocookie\.com)$/.test(host) || host.endsWith('.youtube.com');
+            const isVimeo = host === 'player.vimeo.com';
+            if (isYouTube || isVimeo) {
+                mediaContainer.innerHTML = ''; // clear
+                const iframe = document.createElement('iframe');
+                iframe.id = 'clue-video-iframe';
+                iframe.src = cleanUrl;
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+                iframe.style.width = '100%';
+                iframe.style.aspectRatio = '16 / 9';
+                mediaContainer.appendChild(iframe);
+            } else {
+                const a = document.createElement('a');
+                a.href = cleanUrl;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.textContent = 'Open media link in a new tab';
+                mediaContainer.appendChild(a);
+            }
+        } catch (e) {
+            const a = document.createElement('a');
+            a.href = cleanUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = 'Open media link in a new tab';
+            mediaContainer.appendChild(a);
+        }
 
         // If this is a YouTube embed, try to initialize the IFrame API to capture error events
         if (/youtube\.com\/embed\//.test(cleanUrl) || /youtube-nocookie\.com/.test(cleanUrl)) {
@@ -888,7 +933,9 @@ const populateClueMedia = (clue, mediaContainer = $clueMedia) => {
         // Sanitize the HTML from the MediaURL column to prevent XSS attacks.
         // This allows for safe rendering of rich content like tables or formatted text.
         if (window.DOMPurify) {
-            mediaContainer.innerHTML = DOMPurify.sanitize(mediaUrl);
+            mediaContainer.innerHTML = sanitizeHTML(mediaUrl);
+        } else {
+            mediaContainer.textContent = mediaUrl;
         }
     }
 };
@@ -1629,9 +1676,12 @@ const loadGameFromFile = (file) => {
 
     Papa.parse(file, {
         header: false, // We need to manually handle headers to check for a title row
-        skipEmptyLines: true,
-        comments: "#",
+        skipEmptyLines: 'greedy',
+        comments: '#',
+        delimiter: '', // auto-detect
+        delimitersToGuess: [',', '\t', ';', '|'],
         complete: function (results) {
+            const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
             let data = results.data;
             let headerRowIndex = -1;
             let nextRow = 0;
@@ -1689,7 +1739,8 @@ const loadGameFromFile = (file) => {
                     roundInfo += ' Final Jeopardy is available.';
                 }
 
-                $setupMessage.textContent = `Game loaded successfully! ${roundInfo}`;
+                const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
+                $setupMessage.textContent = `Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`;
                 $setupMessage.classList.remove('hidden', 'text-red-400');
                 $setupMessage.classList.add('text-green-400');
             } else {
@@ -1734,10 +1785,12 @@ const loadDefaultGame = async () => {
         if ($gameTitle) $gameTitle.textContent = selectedGame.name || 'Professor Jeopardy!';
 
         const results = Papa.parse(csvText, {
-        header: false, // Parse manually to get judge code
-        skipEmptyLines: true,
-        comments: "#"
-    });
+            header: false, // Parse manually to get judge code
+            skipEmptyLines: 'greedy',
+            comments: '#',
+            delimiter: '',
+            delimitersToGuess: [',', '\t', ';', '|']
+        });
 
     let data = results.data;
     let headerRowIndex = -1;
@@ -1792,7 +1845,9 @@ const loadDefaultGame = async () => {
             roundInfo += ' Final Jeopardy is available.';
         }
 
-        $setupMessage.textContent = `Game loaded successfully! ${roundInfo}`;
+        const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
+        const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
+        $setupMessage.textContent = `Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`;
         $setupMessage.classList.remove('hidden', 'text-red-400');
         $setupMessage.classList.add('text-green-400');
     } else {
@@ -1918,6 +1973,47 @@ const downloadTemplate = async () => {
 };
 
 /**
+ * Triggers a download of the TSV template (tab-separated) for text-heavy authoring.
+ */
+const downloadTemplateTSV = async () => {
+    try {
+        let csvText = CSV_TEMPLATE;
+        if (!csvText) {
+            const res = await fetch('jeopardy_template.csv');
+            if (!res.ok) throw new Error('Failed to fetch template');
+            csvText = await res.text();
+            CSV_TEMPLATE = csvText;
+        }
+        // Extract instruction lines (start with #) to append verbatim at the end
+        const csvLines = csvText.split(/\r?\n/);
+        const instructionLines = csvLines.filter(l => l.trim().startsWith('#'));
+        // Parse the CSV template (excluding comment stripping) and re-emit as TSV
+        const parsed = Papa.parse(csvText, {
+            header: false,
+            skipEmptyLines: 'greedy',
+            comments: false,
+            delimiter: ',',
+        });
+        const rows = parsed.data;
+        const dataTsv = rows.map(r => (Array.isArray(r) ? r.map(cell => (cell == null ? '' : String(cell))).join('\t') : '')).join('\n');
+        const tsv = instructionLines.length > 0 ? `${dataTsv}\n${instructionLines.join('\n')}` : dataTsv;
+        const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'jeopardy_template.tsv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error('Error downloading TSV template:', e);
+        $setupMessage.textContent = 'Error downloading TSV template file.';
+        $setupMessage.classList.remove('hidden');
+    }
+};
+
+/**
  * Populates the default game selection dropdown.
  */
 const populateDefaultGameSelector = async () => {
@@ -1938,7 +2034,22 @@ const populateDefaultGameSelector = async () => {
         });
     } catch (error) {
         console.error("Failed to populate game selector:", error);
-        $defaultGameSelect.innerHTML = `<option value="">Error loading library</option>`;
+        // Fallback to a built-in list so the UI still works when running from file://
+        const FALLBACK = [
+            { key: 'mkt_res_fun', name: 'Marketing Research Fundamentals', path: 'library/mkt_res_fun.csv' },
+            { key: 'digital_analytics', name: 'Digital Analytics', path: 'library/digital_analytics.csv' },
+            { key: 'exp_design', name: 'Experimental Design', path: 'library/exp_design.csv' },
+            { key: 'qual_research', name: 'Qualitative Research', path: 'library/qual_research.csv' },
+            { key: 'interpreting_results', name: 'Interpreting Results', path: 'library/interpreting_results.csv' }
+        ];
+        GAME_LIBRARY = FALLBACK;
+        $defaultGameSelect.innerHTML = '';
+        GAME_LIBRARY.forEach(game => {
+            const option = document.createElement('option');
+            option.value = game.key;
+            option.textContent = game.name + ' (fallback)';
+            $defaultGameSelect.appendChild(option);
+        });
     }
 };
 
@@ -1982,9 +2093,11 @@ $csvFile.addEventListener('change', (e) => {
         loadGameFromFile(e.target.files[0]);
     }
 });
-$loadDefaultGameButton.addEventListener('click', loadDefaultGame);
-$downloadTemplate.addEventListener('click', downloadTemplate);
-$loadGameButton.addEventListener('click', loadSaveCode);
+if ($loadDefaultGameButton) $loadDefaultGameButton.addEventListener('click', loadDefaultGame);
+if ($downloadTemplate) $downloadTemplate.addEventListener('click', downloadTemplate);
+const $downloadTemplateTSV = document.getElementById('downloadTemplateTSV');
+if ($downloadTemplateTSV) $downloadTemplateTSV.addEventListener('click', downloadTemplateTSV);
+if ($loadGameButton) $loadGameButton.addEventListener('click', loadSaveCode);
 
 if ($advancedEditButton) $advancedEditButton.addEventListener('click', openAdvancedEdit);
 if ($advancedSaveButton) $advancedSaveButton.addEventListener('click', saveAdvancedEdits);
@@ -2000,12 +2113,12 @@ if ($closeSaveModalButton) {
     $closeSaveModalButton.addEventListener('click', () => $saveGameModal.classList.add('hidden'));
 }
 
-$loadPreviousGameButton.addEventListener('click', () => {
+if ($loadPreviousGameButton) $loadPreviousGameButton.addEventListener('click', () => {
     $loadGameModal.classList.remove('hidden');
     $loadGameModal.classList.add('flex');
 });
 
-$closeLoadModalButton.addEventListener('click', () => {
+if ($closeLoadModalButton) $closeLoadModalButton.addEventListener('click', () => {
     $loadGameModal.classList.add('hidden');
     $loadGameModal.classList.remove('flex');
 });
@@ -2015,6 +2128,184 @@ if ($uploadTipsButton) {
         if ($uploadTipsModal) $uploadTipsModal.classList.remove('hidden');
     });
 }
+if ($customGameMenuButton && $customGameMenu) {
+    $customGameMenuButton.addEventListener('click', () => {
+        const isHidden = $customGameMenu.classList.contains('hidden');
+        if (isHidden) {
+            $customGameMenu.classList.remove('hidden');
+        } else {
+            $customGameMenu.classList.add('hidden');
+        }
+    });
+}
+
+// Google Sheets Help modal
+if ($googleSheetHelpLink && $googleSheetHelpModal) {
+    $googleSheetHelpLink.addEventListener('click', () => {
+        $googleSheetHelpModal.classList.remove('hidden');
+        $googleSheetHelpModal.classList.add('flex');
+    });
+}
+if ($closeGoogleSheetHelpButton && $googleSheetHelpModal) {
+    $closeGoogleSheetHelpButton.addEventListener('click', () => {
+        $googleSheetHelpModal.classList.add('hidden');
+        $googleSheetHelpModal.classList.remove('flex');
+    });
+}
+
+// --- GOOGLE SHEETS IMPORT ---
+
+/**
+ * Normalize a Google Sheets URL (view/edit/publish) to a direct export URL (prefer TSV).
+ * @param {string} rawUrl
+ * @returns {string|null} normalized URL or null if invalid
+ */
+const normalizeGoogleSheetUrl = (rawUrl) => {
+    try {
+        const u = new URL(rawUrl.trim());
+        if (!/docs\.google\.com$/i.test(u.hostname) && !/docs\.google\.com$/i.test(u.hostname.replace(/^www\./,''))) {
+            return null;
+        }
+        // Try to pull gid from query or hash
+        let gid = u.searchParams.get('gid') || null;
+        if (!gid && u.hash && u.hash.includes('gid=')) {
+            const m = u.hash.match(/gid=(\d+)/);
+            if (m && m[1]) gid = m[1];
+        }
+        if (!gid) gid = '0';
+
+        const parts = u.pathname.split('/').filter(Boolean);
+        const idx = parts.findIndex(p => p === 'spreadsheets');
+        if (idx === -1) return null;
+
+        // Published to web: /spreadsheets/d/e/{PUBID}/pub*  -> pub?gid=&single=true&output=tsv
+        if (parts[idx+1] === 'd' && parts[idx+2] === 'e' && parts[idx+3]) {
+            const pubId = parts[idx+3];
+            return `https://docs.google.com/spreadsheets/d/e/${pubId}/pub?gid=${gid}&single=true&output=tsv`;
+        }
+
+        // Standard doc: /spreadsheets/d/{ID}/... -> export?format=tsv&gid=
+        if (parts[idx+1] === 'd' && parts[idx+2]) {
+            const sheetId = parts[idx+2];
+            return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=tsv&gid=${gid}`;
+        }
+
+        // If it's already an export/pub URL, nudge format to tsv
+        if (u.pathname.includes('/export') || u.pathname.includes('/pub')) {
+            u.searchParams.set('output', 'tsv');
+            u.searchParams.set('format', 'tsv');
+            if (!u.searchParams.get('gid')) u.searchParams.set('gid', gid);
+            return u.toString();
+        }
+        return null;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Load a Google Sheet (public) by URL, normalize to export, fetch, parse, and set up clues.
+ */
+const loadFromGoogleSheet = async () => {
+    const link = ($googleSheetUrlInput && $googleSheetUrlInput.value) ? $googleSheetUrlInput.value.trim() : '';
+    if (!link) {
+        $setupMessage.textContent = 'Please paste a public Google Sheet link.';
+        $setupMessage.classList.remove('hidden');
+        return;
+    }
+
+    const normalized = normalizeGoogleSheetUrl(link);
+    if (!normalized) {
+        $setupMessage.textContent = 'Invalid Google Sheet link. Please use a public Google Sheets URL.';
+        $setupMessage.classList.remove('hidden');
+        return;
+    }
+
+    clearSessionState();
+    JUDGE_CODE = null;
+    $judgeModeContainer.classList.add('hidden');
+    if ($gameTitle) $gameTitle.textContent = "Dr. Baker's Marketing Jeopardy-O-Matic!";
+
+    try {
+        const response = await fetch(normalized, { credentials: 'omit' });
+        if (!response.ok) {
+            // Common 403/401 when not truly public
+            throw new Error(`Could not fetch. Ensure the sheet/tab is public. HTTP ${response.status}`);
+        }
+        const text = await response.text();
+
+        const results = Papa.parse(text, {
+            header: false,
+            skipEmptyLines: 'greedy',
+            comments: '#',
+            delimiter: '',
+            delimitersToGuess: [',', '\t', ';', '|']
+        });
+
+        let data = results.data;
+        let headerRowIndex = -1;
+        let nextRow = 0;
+
+        if (data.length > 0 && data[0][0] === 'GameTitle') {
+            const customTitle = data[0][1];
+            if (customTitle && $gameTitle) $gameTitle.textContent = customTitle;
+            nextRow = 1;
+        }
+        if (data.length > nextRow && data[nextRow][0] === 'JudgeCode') {
+            JUDGE_CODE = data[nextRow][1] ? String(data[nextRow][1]).trim() : null;
+            if (JUDGE_CODE) $judgeModeContainer.classList.remove('hidden');
+            nextRow++;
+        }
+
+        headerRowIndex = data.findIndex((row, index) => index >= nextRow && row[0] === 'Category');
+        if (headerRowIndex === -1) headerRowIndex = nextRow;
+        const headers = data[headerRowIndex];
+        const clueDataRows = data.slice(headerRowIndex + 1);
+
+        const formattedData = clueDataRows.map(row => {
+            const obj = {};
+            headers.forEach((header, i) => {
+                obj[header.trim()] = row[i];
+            });
+            return obj;
+        });
+
+        if (setupClues(formattedData)) {
+            $startGameButton.disabled = false;
+            $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+            $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+
+            let roundInfo = '';
+            if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) roundInfo = 'This is a 2-round game.';
+            else if (ROUND_1_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 1).';
+            else if (ROUND_2_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 2).';
+            else roundInfo = 'This is a 1-round game.';
+
+            if (FINAL_JEOPARDY_CLUE) roundInfo += ' Final Jeopardy is available.';
+
+            const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
+            const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
+            $setupMessage.textContent = `Loaded from Google Sheet! ${roundInfo} Detected delimiter: ${delimLabel}.`;
+            $setupMessage.classList.remove('hidden', 'text-red-400');
+            $setupMessage.classList.add('text-green-400');
+        } else {
+            $startGameButton.disabled = true;
+            $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
+            $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            $setupMessage.classList.remove('hidden', 'text-green-400');
+            $setupMessage.classList.add('text-red-400');
+        }
+    } catch (e) {
+        console.error('Error loading Google Sheet:', e);
+        $startGameButton.disabled = true;
+        $setupMessage.textContent = `Error: Could not load from Google Sheet. ${e.message}. Make sure the sheet (and tab) is public and the link includes the correct tab (gid).`;
+        $setupMessage.classList.remove('hidden');
+        $setupMessage.classList.add('text-red-400');
+    }
+};
+
+// Attach after definition to avoid TDZ errors for function expressions
+if ($loadFromGoogleSheetButton) $loadFromGoogleSheetButton.addEventListener('click', loadFromGoogleSheet);
 const $closeUploadTipsButton = document.getElementById('closeUploadTipsButton');
 if ($closeUploadTipsButton) {
     $closeUploadTipsButton.addEventListener('click', () => $uploadTipsModal.classList.add('hidden'));
@@ -2100,15 +2391,20 @@ if ($finalJeopardyButton) {
         }
     });
 }
-document.getElementById('fj-proceed-to-wager').addEventListener('click', proceedToWager);
-document.getElementById('fj-lock-wagers').addEventListener('click', lockWagersAndShowClue);
-document.getElementById('fj-reveal-answer').addEventListener('click', revealFinalAnswer);
-document.getElementById('fj-finish-game').addEventListener('click', () => {
+const _fjProceed = document.getElementById('fj-proceed-to-wager');
+if (_fjProceed) _fjProceed.addEventListener('click', proceedToWager);
+const _fjLock = document.getElementById('fj-lock-wagers');
+if (_fjLock) _fjLock.addEventListener('click', lockWagersAndShowClue);
+const _fjReveal = document.getElementById('fj-reveal-answer');
+if (_fjReveal) _fjReveal.addEventListener('click', revealFinalAnswer);
+const _fjFinish = document.getElementById('fj-finish-game');
+if (_fjFinish) _fjFinish.addEventListener('click', () => {
     // Reset the scored flag for all teams before showing standings
     TEAMS.forEach(t => t.fjScored = false);
     showFinalStandings();
 });
-document.getElementById('downloadReportButton').addEventListener('click', downloadPerformanceReport);
+const _dlReport = document.getElementById('downloadReportButton');
+if (_dlReport) _dlReport.addEventListener('click', downloadPerformanceReport);
 
 // --- APP INITIALIZATION ---
 
