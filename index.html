@@ -113,28 +113,31 @@
                     <h3 class="text-2xl font-bold text-yellow-400">Custom Upload Tips</h3>
                     <button id="closeUploadTipsButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
-                <div class="text-gray-300 text-sm space-y-3 max-h-96 overflow-y-auto">
+                <div class='text-gray-300 text-sm space-y-3 max-h-96 overflow-y-auto'>
                     <p>There are two easy ways to author a custom game:</p>
-                    <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>CSV Template</strong> (best with Excel/Sheets) — Export as CSV to keep quoting correct.</li>
-                        <li><strong>TSV Template</strong> (best for hand-editing) — Tabs are friendlier when your text has commas/quotes.</li>
+                    <ul class='list-disc list-inside space-y-2 pl-2'>
+                        <li><strong>CSV template</strong> (best with Excel/Sheets) - export as CSV to keep quoting correct.</li>
+                        <li><strong>TSV template</strong> (best for text editors) - tabs are friendlier when your text includes commas or quotes.</li>
                     </ul>
-                    <p><strong>Auto-detect:</strong> The uploader detects delimiters (CSV or TSV). You’ll see the detected delimiter in the success message.</p>
-                    <p class="mt-2"><strong>Authoring rules</strong> (applies to both CSV and TSV):</p>
-                    <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>Rounds:</strong> Provide either Round 1, Round 2, or both. Each round must have 5 categories × 5 clues.</li>
-                        <li><strong>Values:</strong> Round 1 = 100–500; Round 2 = 200–1000.</li>
+                    <p><strong>Auto-detect:</strong> The uploader detects CSV vs TSV and displays the detected delimiter after a successful load.</p>
+                    <p class='mt-2'><strong>Authoring rules</strong> (applies to CSV and TSV):</p>
+                    <ul class='list-disc list-inside space-y-2 pl-2'>
+                        <li><strong>Rounds:</strong> Provide Round 1, Round 2, or both. Each round must have 5 categories x 5 clues.</li>
+                        <li><strong>Values:</strong> Round 1 uses 100/200/300/400/500. Round 2 uses 200/400/600/800/1000.</li>
                         <li><strong>Daily Doubles:</strong> Put <code>Yes</code> in the <code>DailyDouble</code> column.</li>
-                        <li><strong>Optional Rows:</strong> Add <code>GameTitle</code> and <code>JudgeCode</code> at the very top (see template).</li>
+                        <li><strong>Optional rows:</strong> Add <code>GameTitle</code> and <code>JudgeCode</code> before the header row.</li>
+                        <li><strong>Explanation column:</strong> Use the <code>Explanation</code> column for optional teaching notes revealed after the correct response.</li>
+                        <li><strong>Final Jeopardy:</strong> Add a row with <code>Category = FINAL JEOPARDY</code> and <code>Round = FJ</code>.</li>
                     </ul>
-                    <p class="mt-2"><strong>Media</strong> (use the MediaType and MediaURL columns):</p>
-                    <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>image</strong>: direct http(s) image URL. Avoid Drive/Dropbox sharing links.</li>
-                        <li><strong>video</strong>: YouTube/Vimeo embeds are supported. Use the EMBED URL (e.g., <code>https://www.youtube.com/embed/VIDEO_ID</code>, <code>https://player.vimeo.com/video/ID</code>).</li>
-                        <li><strong>html</strong>: Raw HTML is sanitized. Allowed basics: p, b, i, em, strong, lists, tables, img[src,alt], a[href,target,rel]. Scripts and javascript: URLs are blocked.</li>
+                    <p class='mt-2'><strong>Media</strong> (use <code>MediaType</code> + <code>MediaURL</code>):</p>
+                    <ul class='list-disc list-inside space-y-2 pl-2'>
+                        <li><strong>image</strong>: direct https image URL (avoid Drive/Dropbox share links).</li>
+                        <li><strong>video</strong>: YouTube/Vimeo embed URLs only (e.g., <code>https://www.youtube.com/embed/VIDEO_ID</code>, <code>https://player.vimeo.com/video/ID</code>).</li>
+                        <li><strong>html</strong>: Rich HTML is sanitized (p, strong, lists, tables, img[src|alt], a[href|target|rel], etc.). Scripts and javascript URLs are blocked.</li>
                     </ul>
-                    <p class="mt-2">Tip: If your text is heavy on commas or quotes, prefer the TSV template.</p>
-                    <p class="mt-1"><strong>Google Sheets note:</strong> Loading from a Google Sheet imports a one-time snapshot of the selected tab at that moment. It does <em>not</em> live-sync with your sheet. To pick up changes, update the sheet and click “Load from Google Sheet” again.</p>
+                    <p class='mt-2'>Tip: If your text is heavy on punctuation, use the TSV template to avoid escaping headaches.</p>
+                    <p class='mt-1'><strong>Google Sheets note:</strong> Loading from Sheets pulls a snapshot of the selected tab. It does <em>not</em> live-sync--update your sheet and click &quot;Load from Google Sheet&quot; again after edits.</p>
+                </div>
                 </div>
             </div>
         </div>
@@ -281,12 +284,18 @@
                     <p id="clue-answer" class="text-2xl text-green-400 mt-6 border-t border-gray-700 pt-4 hidden">
                         CORRECT RESPONSE: <span class="font-bold"></span>
                     </p>
+                    <div id="clue-explanation" class="text-lg text-blue-200 mt-4 border-t border-gray-800 pt-4 hidden">
+                        EXPLANATION: <span id="clue-explanation-text" class="font-semibold"></span>
+                    </div>
                 </div>
                 
                 <div id="clue-actions" class="mt-4">
                     <div class="flex justify-center mb-4 space-x-4">
                         <button id="revealAnswerButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition text-xl shadow-lg">
                             Reveal Answer
+                        </button>
+                        <button id="explainAnswerButton" class="hidden bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg transition text-xl shadow-lg">
+                            Explain Answer
                         </button>
                         <button id="passClueButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition text-xl shadow-lg">
                             Pass / No Answer

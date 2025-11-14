@@ -24,6 +24,7 @@ const CSV_HEADER_MAP = {
     'value': 'Value',
     'clue': 'Clue',
     'answer': 'Answer',
+    'explanation': 'Explanation',
     'mediaType': 'MediaType',
     'mediaUrl': 'MediaURL',
     'dailyDouble': 'DailyDouble',
@@ -122,6 +123,9 @@ const $normalNamesButton = document.getElementById('normalNamesButton');
 const $useDefaultNamesButton = document.getElementById('useDefaultNamesButton');
 const $dndNamesButton = document.getElementById('dndNamesButton');
 const $confirmNamesButton = document.getElementById('confirmNamesButton');
+const $explainAnswerButton = document.getElementById('explainAnswerButton');
+const $clueExplanation = document.getElementById('clue-explanation');
+const $clueExplanationText = document.getElementById('clue-explanation-text');
 
 
 // --- CSV TEMPLATE ---
@@ -155,6 +159,15 @@ const closeClueModal = () => {
     $clueModal.classList.remove('flex');
     $clueAnswer.classList.add('hidden');
     $revealAnswerButton.classList.remove('hidden');
+    if ($clueExplanation) {
+        $clueExplanation.classList.add('hidden');
+        if ($clueExplanationText) {
+            $clueExplanationText.innerHTML = '';
+        }
+    }
+    if ($explainAnswerButton) {
+        $explainAnswerButton.classList.add('hidden');
+    }
     $clueMedia.innerHTML = ''; // Clear media content
 };
 
@@ -642,6 +655,15 @@ const openClue = (clueIndex) => {
     const clue = CLUES[clueIndex];
     CURRENT_CLUE_INDEX = clueIndex;
     PENALIZED_TEAMS = []; // Reset penalty tracking for new clue
+    if ($clueExplanation) {
+        $clueExplanation.classList.add('hidden');
+    }
+    if ($clueExplanationText) {
+        $clueExplanationText.innerHTML = '';
+    }
+    if ($explainAnswerButton) {
+        $explainAnswerButton.classList.add('hidden');
+    }
 
     $clueValueText.textContent = `$${clue.Value.toLocaleString()}`;
 
@@ -980,6 +1002,7 @@ const setupClues = (data) => {
             : parseInt(String(row[CSV_HEADER_MAP.value]).replace(/[$,]/g, '')) || 0,
         Clue: row[CSV_HEADER_MAP.clue] || '',
         Answer: row[CSV_HEADER_MAP.answer] || '',
+        Explanation: row[CSV_HEADER_MAP.explanation] || '',
         MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
         MediaURL: row[CSV_HEADER_MAP.mediaUrl] || '',
         DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No',
@@ -1078,8 +1101,11 @@ const setupClues = (data) => {
  * @param {Array<number>} [initialScores=[]] - Optional array of scores for loading state.
  * @param {Array<boolean>} [initialBoardState=[]] - Optional array of played status for loading state.
  */
-const startGame = (numTeams, initialScores = [], initialBoardState = []) => {
-    PERFORMANCE_DATA = {}; // Reset performance data for a new game
+const startGame = (numTeams, initialScores = [], initialBoardState = [], options = {}) => {
+    const { preservePerformance = false } = options;
+    if (!preservePerformance) {
+        PERFORMANCE_DATA = {}; // Reset performance data for a new game
+    }
 
     // Initialize teams if not already configured
     if (!Array.isArray(TEAMS) || TEAMS.length !== numTeams) {
@@ -1877,14 +1903,21 @@ const generateSaveCode = () => {
     try {
         const title = $gameTitle ? $gameTitle.textContent : "Dr. Baker's Marketing Jeopardy-O-Matic!";
         const state = {
-            c: CATEGORIES, // Categories
-            d: CLUES, // Clue Data
-            s: TEAMS.map(team => team.score), // Scores
-            t: TEAMS.length, // Team count
-            p: BOARD_STATE, // Played tiles
-            n: TEAMS.map(team => team.name) // Team names
+            version: 2,
+            title,
+            allClues: ALL_CLUES,
+            round1Clues: ROUND_1_CLUES,
+            round2Clues: ROUND_2_CLUES,
+            finalJeopardy: FINAL_JEOPARDY_CLUE,
+            currentRound: CURRENT_ROUND,
+            boardState: Array.isArray(BOARD_STATE) ? BOARD_STATE.slice() : [],
+            teams: TEAMS.map(team => ({ ...team })),
+            performance: PERFORMANCE_DATA,
+            judgeCode: JUDGE_CODE,
+            gameStartTime: GAME_START_TIME ? GAME_START_TIME.toISOString() : null,
+            gameEndTime: GAME_END_TIME ? GAME_END_TIME.toISOString() : null,
+            teamCount: TEAMS.length
         };
-        state.title = title; // Add title to the save state
         // Convert state to JSON, then to Base64
         const jsonState = JSON.stringify(state);
         const base64State = btoa(jsonState);
@@ -1894,6 +1927,161 @@ const generateSaveCode = () => {
         console.error("Error generating save code:", e);
         $saveCodeDisplay.value = "Error generating code.";
     }
+};
+
+/**
+ * Returns a normalized board-state array sized to the total number of clues.
+ */
+const buildBoardStateSnapshot = (savedBoardState, clueCount) => {
+    const length = Math.max(0, Number(clueCount) || 0);
+    const board = new Array(length).fill(false);
+    if (Array.isArray(savedBoardState)) {
+        const limit = Math.min(length, savedBoardState.length);
+        for (let i = 0; i < limit; i++) {
+            board[i] = Boolean(savedBoardState[i]);
+        }
+    }
+    return board;
+};
+
+/**
+ * Restores an entire game from the versioned save-state object.
+ * @param {object} state
+ */
+const restoreGameFromFullState = (state) => {
+    const fallbackTitle = "Dr. Baker's Marketing Jeopardy-O-Matic!";
+    $gameTitle.textContent = state.title || fallbackTitle;
+
+    ALL_CLUES = Array.isArray(state.allClues) ? state.allClues : [];
+    ROUND_1_CLUES = Array.isArray(state.round1Clues) ? state.round1Clues : [];
+    ROUND_2_CLUES = Array.isArray(state.round2Clues) ? state.round2Clues : [];
+    FINAL_JEOPARDY_CLUE = state.finalJeopardy || null;
+
+    if (ROUND_1_CLUES.length === 0 && ROUND_2_CLUES.length === 0 && ALL_CLUES.length > 0) {
+        ROUND_1_CLUES = ALL_CLUES.filter(clue => String(clue.Round) === '1');
+        ROUND_2_CLUES = ALL_CLUES.filter(clue => String(clue.Round) === '2');
+    }
+    if (!ALL_CLUES.length) {
+        ALL_CLUES = [...ROUND_1_CLUES, ...ROUND_2_CLUES];
+    }
+
+    let restoredRound = Number(state.currentRound);
+    if (restoredRound !== 2) restoredRound = 1;
+    if (restoredRound === 1 && ROUND_1_CLUES.length === 0 && ROUND_2_CLUES.length > 0) {
+        restoredRound = 2;
+    } else if (restoredRound === 2 && ROUND_2_CLUES.length === 0 && ROUND_1_CLUES.length > 0) {
+        restoredRound = 1;
+    }
+    CURRENT_ROUND = restoredRound;
+
+    CLUES = CURRENT_ROUND === 1 ? ROUND_1_CLUES : ROUND_2_CLUES;
+    if (!CLUES.length) {
+        if (ROUND_1_CLUES.length) {
+            CURRENT_ROUND = 1;
+            CLUES = ROUND_1_CLUES;
+        } else if (ROUND_2_CLUES.length) {
+            CURRENT_ROUND = 2;
+            CLUES = ROUND_2_CLUES;
+        } else {
+            CLUES = [];
+        }
+    }
+    CATEGORIES = CLUES.length ? [...new Set(CLUES.map(clue => clue.Category))] : [];
+
+    const totalClues = ALL_CLUES.length || (ROUND_1_CLUES.length + ROUND_2_CLUES.length);
+    const boardState = buildBoardStateSnapshot(state.boardState, totalClues);
+
+    let normalizedTeams = Array.isArray(state.teams) ? state.teams : [];
+    normalizedTeams = normalizedTeams.filter(Boolean).map((team, index) => ({
+        ...team,
+        name: team.name && String(team.name).trim() ? String(team.name).trim() : `Team ${index + 1}`,
+        score: parseInt(team.score, 10) || 0
+    }));
+
+    let teamCount = normalizedTeams.length;
+    if (!teamCount) {
+        const parsed = parseInt(state.teamCount, 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+            teamCount = parsed;
+        }
+    }
+    if (!teamCount) {
+        teamCount = MIN_TEAMS;
+    }
+
+    if (!normalizedTeams.length) {
+        normalizedTeams = Array.from({ length: teamCount }, (_, i) => ({
+            name: `Team ${i + 1}`,
+            score: 0
+        }));
+    } else if (normalizedTeams.length !== teamCount) {
+        teamCount = normalizedTeams.length;
+    }
+
+    TEAMS = normalizedTeams;
+    $numTeams.value = teamCount;
+
+    PERFORMANCE_DATA = state.performance && typeof state.performance === 'object' ? state.performance : {};
+    JUDGE_CODE = state.judgeCode || null;
+    if (JUDGE_CODE) {
+        $judgeModeContainer.classList.remove('hidden');
+    } else {
+        $judgeModeContainer.classList.add('hidden');
+    }
+
+    GAME_START_TIME = state.gameStartTime ? new Date(state.gameStartTime) : null;
+    GAME_END_TIME = state.gameEndTime ? new Date(state.gameEndTime) : null;
+
+    const initialScores = TEAMS.map(team => team.score);
+    startGame(teamCount, initialScores, boardState, { preservePerformance: true });
+    updateScoreboard();
+
+    if (FINAL_JEOPARDY_CLUE) {
+        $finalJeopardyButton.classList.remove('hidden');
+    } else {
+        $finalJeopardyButton.classList.add('hidden');
+    }
+};
+
+/**
+ * Restores the older (pre-versioned) save codes as best as possible.
+ * @param {object} state
+ */
+const restoreGameFromLegacyState = (state) => {
+    if (!state || !Array.isArray(state.d)) {
+        throw new Error("Legacy save code is missing clue data.");
+    }
+
+    const fallbackTitle = state.title || "Dr. Baker's Marketing Jeopardy-O-Matic!";
+    $gameTitle.textContent = fallbackTitle;
+
+    ALL_CLUES = state.d;
+    ROUND_1_CLUES = ALL_CLUES;
+    ROUND_2_CLUES = [];
+    FINAL_JEOPARDY_CLUE = null;
+    CURRENT_ROUND = 1;
+    CLUES = ROUND_1_CLUES;
+    CATEGORIES = CLUES.length ? [...new Set(CLUES.map(clue => clue.Category))] : [];
+
+    const boardState = buildBoardStateSnapshot(state.p, ALL_CLUES.length);
+    const names = Array.isArray(state.n) ? state.n : [];
+    const scores = Array.isArray(state.s) ? state.s : [];
+    const teamCount = Number(state.t) || names.length || scores.length || MIN_TEAMS;
+    TEAMS = Array.from({ length: teamCount }, (_, i) => ({
+        name: names[i] || `Team ${i + 1}`,
+        score: parseInt(scores[i], 10) || 0
+    }));
+
+    PERFORMANCE_DATA = {};
+    JUDGE_CODE = null;
+    $judgeModeContainer.classList.add('hidden');
+    $finalJeopardyButton.classList.add('hidden');
+    GAME_START_TIME = null;
+    GAME_END_TIME = null;
+    $numTeams.value = teamCount;
+
+    startGame(teamCount, TEAMS.map(team => team.score), boardState, { preservePerformance: true });
+    updateScoreboard();
 };
 
 /**
@@ -1908,38 +2096,27 @@ const loadSaveCode = () => {
         const jsonState = atob(code);
         const state = JSON.parse(jsonState);
 
-        // Validate the loaded state
-        if (!state.c || !state.d || !state.s || !state.t || !state.p || !state.title) {
-            throw new Error("Invalid save code format.");
+        if (state.version && state.version >= 2) {
+            restoreGameFromFullState(state);
+            $setupMessage.textContent = 'Save code loaded successfully.';
+            $setupMessage.classList.remove('hidden', 'text-red-400', 'text-yellow-300');
+            $setupMessage.classList.add('text-green-400');
+        } else {
+            restoreGameFromLegacyState(state);
+            $setupMessage.textContent = 'Legacy save code loaded (some advanced data may be missing).';
+            $setupMessage.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            $setupMessage.classList.add('text-yellow-300');
         }
 
-        // Restore global state
-        CATEGORIES = state.c;
-        CLUES = state.d;
-        const numTeams = state.t; // This needs to be smarter for multi-round games
-        const scores = state.s;
-        const boardState = state.p;
-        const names = Array.isArray(state.n) ? state.n : null; // Optional team names for backward compatibility
-
-        // Restore title
-        if ($gameTitle) {
-            $gameTitle.textContent = state.title;
-        }
-
-        // Start the game with the restored state
-        $numTeams.value = numTeams; // Update UI
-        startGame(numTeams, scores, boardState);
-
-        // If names were saved, restore them now and refresh scoreboard
-        if (names && names.length === TEAMS.length) {
-            TEAMS.forEach((team, i) => team.name = names[i] || team.name);
-            updateScoreboard();
+        if ($loadGameModal) {
+            $loadGameModal.classList.add('hidden');
+            $loadGameModal.classList.remove('flex');
         }
 
     } catch (e) {
         console.error("Error loading save code:", e);
         $setupMessage.textContent = "Error: Invalid or corrupt save code.";
-        $setupMessage.classList.remove('hidden');
+        $setupMessage.classList.remove('hidden', 'text-green-400', 'text-yellow-300');
         $setupMessage.classList.add('text-red-400');
     }
 };
@@ -2349,7 +2526,32 @@ $saveCodeDisplay.addEventListener('click', () => $saveCodeDisplay.select());
 $revealAnswerButton.addEventListener('click', () => {
     $clueAnswer.classList.remove('hidden');
     $revealAnswerButton.classList.add('hidden');
+    const clue = CLUES[CURRENT_CLUE_INDEX];
+    const hasExplanation = clue && typeof clue.Explanation === 'string' && clue.Explanation.trim().length > 0;
+    if ($explainAnswerButton) {
+        if (hasExplanation) {
+            $explainAnswerButton.classList.remove('hidden');
+        } else {
+            $explainAnswerButton.classList.add('hidden');
+        }
+    }
 });
+
+if ($explainAnswerButton) {
+    $explainAnswerButton.addEventListener('click', () => {
+        const clue = CLUES[CURRENT_CLUE_INDEX];
+        if (!$clueExplanation || !$clueExplanationText || !clue || !clue.Explanation || !clue.Explanation.trim()) {
+            return;
+        }
+        if (window.DOMPurify) {
+            $clueExplanationText.innerHTML = sanitizeHTML(clue.Explanation);
+        } else {
+            $clueExplanationText.textContent = clue.Explanation;
+        }
+        $clueExplanation.classList.remove('hidden');
+        $explainAnswerButton.classList.add('hidden');
+    });
+}
 
 $passClueButton.addEventListener('click', () => {
     finalizeClue();
