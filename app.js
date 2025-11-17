@@ -17,6 +17,9 @@ let MARKETING_TEAM_NAMES = []; // Stores random team names from file
 let DND_TEAM_NAMES = []; // Stores random D&D team names from file
 let CURRENT_CLUE_INDEX = -1; // Index of the currently open clue in the CLUES array
 let PENALIZED_TEAMS = []; // Array of team indices that have received a deduction for the current clue.
+let AUTO_TIMER_ENABLED = false;
+let AUTO_TIMER_SECONDS = 20;
+let AUTO_TIMER_ID = null;
 
 // --- CONSTANTS AND CONFIGURATION ---
 const CSV_HEADER_MAP = {
@@ -43,6 +46,14 @@ const useDefaultGroupNames = () => {
 };
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
+
+// Lightweight formatting: convert **bold** markers to <strong> tags
+const applySimpleFormatting = (text) => {
+    if (typeof text !== 'string') return text;
+    // If the author is already using HTML tags, don't try to transform
+    if (text.includes('<') && text.includes('>')) return text;
+    return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+};
 
 // Shared sanitizer wrapper for rich clue/answer/media HTML
 const sanitizeHTML = (html) => {
@@ -73,6 +84,7 @@ const $clueAnswer = document.getElementById('clue-answer');
 const $clueMedia = document.getElementById('clue-media');
 const $revealAnswerButton = document.getElementById('revealAnswerButton');
 const $passClueButton = document.getElementById('passClueButton');
+const $clueTimer = document.getElementById('clue-timer');
 const $teamScoringButtons = document.getElementById('team-scoring-buttons');
 const $downloadTemplate = document.getElementById('downloadTemplate');
 const $defaultGameSelect = document.getElementById('defaultGameSelect');
@@ -116,6 +128,9 @@ const $googleSheetHelpModal = document.getElementById('google-sheet-help-modal')
 const $closeGoogleSheetHelpButton = document.getElementById('closeGoogleSheetHelpButton');
 const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
 const $newGameButton = document.getElementById('newGameButton');
+const $autoTimerEnabled = document.getElementById('autoTimerEnabled');
+const $autoTimerSeconds = document.getElementById('autoTimerSeconds');
+const $colorTheme = document.getElementById('colorTheme');
 const $judgeModeControls = document.getElementById('judge-mode-controls');
 const $teamNameModal = document.getElementById('team-name-modal');
 const $teamNameList = document.getElementById('team-name-list');
@@ -169,6 +184,15 @@ const closeClueModal = () => {
         $explainAnswerButton.classList.add('hidden');
     }
     $clueMedia.innerHTML = ''; // Clear media content
+    // Stop and hide any running auto-timer
+    if (AUTO_TIMER_ID !== null) {
+        clearInterval(AUTO_TIMER_ID);
+        AUTO_TIMER_ID = null;
+    }
+    if ($clueTimer) {
+        $clueTimer.classList.add('hidden');
+        $clueTimer.classList.remove('animate-pulse', 'text-red-400');
+    }
 };
 
 /**
@@ -177,7 +201,6 @@ const closeClueModal = () => {
 const closeDailyDoubleModal = () => {
     $dailyDoubleModal.classList.add('hidden');
     $dailyDoubleModal.classList.remove('flex');
-    $clueMedia.innerHTML = ''; // Clear media content
 };
 
 /**
@@ -242,7 +265,7 @@ const updateScoreboard = () => {
     TEAMS.forEach((team, index) => {
         const scoreClass = team.score >= 0 ? 'text-green-400' : 'text-red-400';
         const teamCard = document.createElement('div');
-        teamCard.className = `p-4 rounded-xl shadow-lg bg-gray-700`;
+        teamCard.className = `p-4 rounded-xl shadow-lg score-card`;
         const displayName = team.name && String(team.name).trim() ? team.name : `Team ${index + 1}`;
         teamCard.innerHTML = `
                     <p class="text-gray-300 font-semibold text-sm">${displayName}</p>
@@ -652,8 +675,8 @@ const normalizeMediaUrl = (url) => {
  * @param {number} clueIndex - The index of the clue to open.
  */
 const openClue = (clueIndex) => {
-    const clue = CLUES[clueIndex];
-    CURRENT_CLUE_INDEX = clueIndex;
+      const clue = CLUES[clueIndex];
+      CURRENT_CLUE_INDEX = clueIndex;
     PENALIZED_TEAMS = []; // Reset penalty tracking for new clue
     if ($clueExplanation) {
         $clueExplanation.classList.add('hidden');
@@ -665,20 +688,51 @@ const openClue = (clueIndex) => {
         $explainAnswerButton.classList.add('hidden');
     }
 
-    $clueValueText.textContent = `$${clue.Value.toLocaleString()}`;
-
-    // Use .innerHTML with sanitization to allow for rich HTML content in clues and answers.
+      $clueValueText.textContent = `$${clue.Value.toLocaleString()}`;
+  
+      // Use .innerHTML with sanitization to allow for rich HTML content in clues and answers.
     if (window.DOMPurify) {
-        $clueText.innerHTML = sanitizeHTML(clue.Clue);
-        $clueAnswer.querySelector('span').innerHTML = sanitizeHTML(clue.Answer);
-    } else {
-        // Fallback if DOMPurify fails to load
-        $clueText.textContent = clue.Clue;
-        $clueAnswer.querySelector('span').textContent = clue.Answer;
-    }
+        $clueText.innerHTML = sanitizeHTML(applySimpleFormatting(clue.Clue));
+        $clueAnswer.querySelector('span').innerHTML = sanitizeHTML(applySimpleFormatting(clue.Answer));
+      } else {
+          // Fallback if DOMPurify fails to load
+          $clueText.textContent = clue.Clue;
+          $clueAnswer.querySelector('span').textContent = clue.Answer;
+      }
 
     // Handle Media Display
     populateClueMedia(clue);
+
+    // Start auto timer if enabled
+    if (AUTO_TIMER_ENABLED && AUTO_TIMER_SECONDS > 0 && $clueTimer) {
+        let remaining = AUTO_TIMER_SECONDS;
+        $clueTimer.textContent = `${remaining}`;
+        $clueTimer.classList.remove('hidden', 'animate-pulse', 'text-red-400');
+        $clueTimer.classList.add('block', 'text-yellow-300');
+
+        if (AUTO_TIMER_ID !== null) {
+            clearInterval(AUTO_TIMER_ID);
+        }
+        AUTO_TIMER_ID = setInterval(() => {
+            remaining -= 1;
+            if (remaining > 0) {
+                $clueTimer.textContent = `${remaining}`;
+            } else {
+                clearInterval(AUTO_TIMER_ID);
+                AUTO_TIMER_ID = null;
+                $clueTimer.textContent = "TIME'S UP!";
+                $clueTimer.classList.remove('text-yellow-300');
+                $clueTimer.classList.add('text-red-400', 'animate-pulse');
+                // Hide after 2 seconds
+                setTimeout(() => {
+                    if ($clueTimer) {
+                        $clueTimer.classList.add('hidden');
+                        $clueTimer.classList.remove('animate-pulse', 'text-red-400');
+                    }
+                }, 2000);
+            }
+        }, 1000);
+    }
 
     // Check if it's a Daily Double
     if (clue.DailyDouble && clue.DailyDouble.toLowerCase() === 'yes') {
@@ -694,18 +748,18 @@ const openClue = (clueIndex) => {
  * Opens the simplified modal for Judge Mode, showing question and answer.
  * @param {number} clueIndex - The index of the clue to open.
  */
-const openJudgeClue = (clueIndex) => {
-    const clue = CLUES[clueIndex];
-    $judgeClueValueText.textContent = `${clue.Category} - $${clue.Value.toLocaleString()}`;
-
-    // Use .innerHTML with sanitization for rich content in Judge Mode as well.
-    if (window.DOMPurify) {
-        $judgeClueText.innerHTML = sanitizeHTML(clue.Clue);
-        $judgeClueAnswer.querySelector('span').innerHTML = sanitizeHTML(clue.Answer);
-    } else {
-        $judgeClueText.textContent = clue.Clue;
-        $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
-    }
+  const openJudgeClue = (clueIndex) => {
+      const clue = CLUES[clueIndex];
+      $judgeClueValueText.textContent = `${clue.Category} - $${clue.Value.toLocaleString()}`;
+  
+      // Use .innerHTML with sanitization for rich content in Judge Mode as well.
+      if (window.DOMPurify) {
+          $judgeClueText.innerHTML = sanitizeHTML(applySimpleFormatting(clue.Clue));
+          $judgeClueAnswer.querySelector('span').innerHTML = sanitizeHTML(applySimpleFormatting(clue.Answer));
+      } else {
+          $judgeClueText.textContent = clue.Clue;
+          $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
+      }
 
     // Re-use the media population logic, but target the judge modal's media container
     populateClueMedia(clue, document.getElementById('judge-clue-media'));
@@ -2316,6 +2370,46 @@ if ($customGameMenuButton && $customGameMenu) {
     });
 }
 
+// Auto timer settings
+if ($autoTimerEnabled) {
+    $autoTimerEnabled.addEventListener('change', () => {
+        AUTO_TIMER_ENABLED = $autoTimerEnabled.checked;
+    });
+    AUTO_TIMER_ENABLED = $autoTimerEnabled.checked;
+}
+if ($autoTimerSeconds) {
+    $autoTimerSeconds.addEventListener('change', () => {
+        const v = parseInt($autoTimerSeconds.value, 10);
+        if (!isNaN(v) && v >= 5 && v <= 120) {
+            AUTO_TIMER_SECONDS = v;
+        }
+    });
+    const initial = parseInt($autoTimerSeconds.value, 10);
+    if (!isNaN(initial) && initial >= 5 && initial <= 120) {
+        AUTO_TIMER_SECONDS = initial;
+    }
+}
+
+// Color theme handling
+const THEME_KEYS = ['classic', 'light', 'dark', 'christmas', 'highcontrast'];
+const applyTheme = (key) => {
+    const theme = THEME_KEYS.includes(key) ? key : 'classic';
+    const body = document.body;
+    THEME_KEYS.forEach(t => body.classList.remove(`theme-${t}`));
+    body.classList.add(`theme-${theme}`);
+};
+
+if ($colorTheme) {
+    $colorTheme.addEventListener('change', () => {
+        applyTheme($colorTheme.value);
+    });
+    // Apply initial theme from select value
+    applyTheme($colorTheme.value || 'classic');
+} else {
+    // Fallback to classic theme
+    applyTheme('classic');
+}
+
 // Google Sheets Help modal
 if ($googleSheetHelpLink && $googleSheetHelpModal) {
     $googleSheetHelpLink.addEventListener('click', () => {
@@ -2544,7 +2638,7 @@ if ($explainAnswerButton) {
             return;
         }
         if (window.DOMPurify) {
-            $clueExplanationText.innerHTML = sanitizeHTML(clue.Explanation);
+            $clueExplanationText.innerHTML = sanitizeHTML(applySimpleFormatting(clue.Explanation));
         } else {
             $clueExplanationText.textContent = clue.Explanation;
         }

@@ -1,16 +1,61 @@
 body {
     font-family: 'Inter', sans-serif;
+}
+
+/* Theme base styles */
+body.theme-classic {
     background-color: #1a202c;
+    color: #f9fafb;
+}
+
+body.theme-light {
+    background-color: #f7fafc;
+    color: #1f2933;
+}
+
+body.theme-dark {
+    background-color: #020617;
+    color: #e5e7eb;
+}
+
+body.theme-highcontrast {
+    background-color: #000000;
+    color: #ffffff;
+}
+body.theme-christmas {
+    background: radial-gradient(circle at top, #064e3b 0, #022c22 40%, #010b0a 100%);
+    color: #f9fafb;
 }
 
 .font-jeopardy {
     font-family: 'Zilla Slab', serif;
 }
 
-/* Classic Jeopardy Blue */
+/* Classic Jeopardy Blue (default) */
 .jeopardy-blue {
     background-color: #0d287c;
     color: white;
+}
+
+/* Theme variations for tiles */
+body.theme-light .jeopardy-blue {
+    background-color: #2563eb;
+    color: #fefce8;
+}
+
+body.theme-dark .jeopardy-blue {
+    background-color: #1d4ed8;
+    color: #e5e7eb;
+}
+
+body.theme-christmas .jeopardy-blue {
+    background-color: #064e3b;
+    color: #f9fafb;
+}
+
+body.theme-highcontrast .jeopardy-blue {
+    background-color: #000000;
+    color: #ffeb3b;
 }
 
 .jeopardy-tile {
@@ -44,8 +89,44 @@ body {
     font-style: italic;
 }
 
+body.theme-light .played {
+    background-color: #e5e7eb;
+    color: #9ca3af;
+}
+
+body.theme-dark .played {
+    background-color: #020617;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+body.theme-christmas .played {
+    background-color: #022c22;
+    color: rgba(229, 231, 235, 0.7);
+}
+
+body.theme-highcontrast .played {
+    background-color: #111827;
+    color: #9ca3af;
+}
+
 .modal-overlay {
     background-color: rgba(0, 0, 0, 0.85);
+}
+
+body.theme-light .modal-overlay {
+    background-color: rgba(15, 23, 42, 0.65);
+}
+
+body.theme-dark .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+body.theme-christmas .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+body.theme-highcontrast .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.95);
 }
 
 /* Style for the custom media display, ensures responsive scaling */
@@ -88,4 +169,174 @@ body {
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Light/Dark/Christmas overrides for common Tailwind grays & accents */
+body.theme-light .bg-gray-900,
+body.theme-light .bg-gray-800,
+body.theme-light .bg-gray-700 {
+    background-color: #e5e7eb !important;
+}
+
+body.theme-light .text-gray-300 {
+    color: #4b5563 !important;
+}
+
+body.theme-light .border-yellow-500,
+body.theme-light .text-yellow-400 {
+    border-color: #d97706 !important;
+    color: #d97706 !important;
+}
+
+body.theme-dark .bg-gray-900 {
+    background-color: #020617 !important;
+}
+
+body.theme-dark .bg-gray-800 {
+    background-color: #020617 !important;
+}
+
+body.theme-dark .bg-gray-700 {
+    background-color: #111827 !important;
+}
+
+body.theme-dark .border-yellow-500,
+body.theme-dark .text-yellow-400 {
+    border-color: #facc15 !important;
+    color: #facc15 !important;
+}
+
+body.theme-christmas .bg-gray-900,
+body.theme-christmas .bg-gray-800,
+body.theme-christmas .bg-gray-700 {
+    background-color: #022c22 !important;
+}
+
+body.theme-highcontrast .bg-gray-900,
+body.theme-highcontrast .bg-gray-800,
+body.theme-highcontrast .bg-gray-700 {
+    background-color: #000000 !important;
+}
+
+body.theme-christmas .border-yellow-500,
+body.theme-christmas .text-yellow-400 {
+    border-color: #991b1b !important;
+    color: #991b1b !important;
+}
+
+body.theme-highcontrast .border-yellow-500,
+body.theme-highcontrast .text-yellow-400 {
+    border-color: #ffeb3b !important;
+    color: #ffeb3b !important;
+}
+
+/* Extra Christmas styling: deep reds, dark greens, light text */
+body.theme-christmas .jeopardy-tile {
+    border-color: #991b1b;
+}
+
+body.theme-christmas .jeopardy-tile:hover:not(.played) {
+    background-color: #047857;
+}
+
+/* Light mode: ensure default text is dark, not white */
+body.theme-light .text-white {
+    color: #111827 !important;
+}
+
+body.theme-highcontrast .text-white {
+    color: #ffffff !important;
+}
+
+/* Game Setup main box per theme */
+body.theme-classic #setup-screen {
+    background-color: #1f2937;
+}
+
+body.theme-light #setup-screen {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+body.theme-dark #setup-screen {
+    background-color: #020617;
+}
+
+body.theme-christmas #setup-screen {
+    background-color: #022c22;
+}
+
+body.theme-highcontrast #setup-screen {
+    background-color: #000000;
+}
+
+/* Christmas-specific override for 'Load Previous Game' button */
+body.theme-christmas #loadPreviousGameButton {
+    background-color: #991b1b !important;
+    color: #f9fafb !important;
+}
+
+body.theme-christmas #loadPreviousGameButton:hover {
+    background-color: #7f1d1d !important;
+}
+
+body.theme-highcontrast #loadPreviousGameButton {
+    background-color: #000000 !important;
+    color: #ffeb3b !important;
+    border: 2px solid #ffeb3b;
+}
+
+body.theme-highcontrast #loadPreviousGameButton:hover {
+    background-color: #111827 !important;
+}
+
+/* Scoreboard cards per theme */
+body.theme-classic .score-card {
+    background-color: #1f2937;
+    color: #f9fafb;
+}
+
+body.theme-light .score-card {
+    background-color: #ffffff;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+body.theme-dark .score-card {
+    background-color: #020617;
+    color: #e5e7eb;
+    border: 1px solid #111827;
+}
+
+body.theme-christmas .score-card {
+    background-color: #022c22;
+    color: #f9fafb;
+    border: 2px solid #b91c1c;
+}
+
+body.theme-highcontrast .score-card {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid #ffeb3b;
+}
+
+/* Game title color per theme */
+body.theme-classic #game-title {
+    color: #fbbf24;
+}
+
+body.theme-light #game-title {
+    color: #1d4ed8;
+}
+
+body.theme-dark #game-title {
+    color: #f9fafb;
+}
+
+body.theme-christmas #game-title {
+    color: #991b1b !important;
+}
+
+body.theme-highcontrast #game-title {
+    color: #ffeb3b !important;
 }
