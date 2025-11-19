@@ -11,6 +11,7 @@ let BOARD_STATE = []; // Array tracking which clues (by index) have been played 
 let PERFORMANCE_DATA = {}; // Tracks performance for each clue: { clueIndex: { teamIndex: 'correct'/'incorrect'/'pass' } }
 let GAME_LIBRARY = []; // Stores the list of available default games from the manifest
 let JUDGE_CODE = null; // Stores the secret code for judge mode
+let JUDGE_MODE_ACTIVE = false; // Tracks whether judge mode view is currently active
 let GAME_START_TIME = null;
 let GAME_END_TIME = null;
 let MARKETING_TEAM_NAMES = []; // Stores random team names from file
@@ -33,6 +34,26 @@ const CSV_HEADER_MAP = {
     'dailyDouble': 'DailyDouble',
     'round': 'Round'
 };
+const NORMALIZED_CSV_HEADERS = new Set(
+    Object.values(CSV_HEADER_MAP).map(val => String(val).trim().toLowerCase())
+);
+const HEADER_REQUIRED = ['category', 'clue'];
+
+const normalizeHeaderCell = (cell) => String(cell || '').trim().toLowerCase();
+
+const isHeaderRow = (row) => {
+    if (!Array.isArray(row)) return false;
+    const normalized = row.map(normalizeHeaderCell);
+    if (!HEADER_REQUIRED.every(req => normalized.includes(req))) return false;
+    return normalized.some(cell => NORMALIZED_CSV_HEADERS.has(cell));
+};
+
+const findHeaderRowIndex = (data, startRow = 0) => {
+    for (let i = startRow; i < data.length; i++) {
+        if (isHeaderRow(data[i])) return i;
+    }
+    return -1;
+};
 
 /**
  * Populates the team name inputs with "Group 1", "Group 2", ... and starts the game.
@@ -46,7 +67,7 @@ const useDefaultGroupNames = () => {
 };
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
-
+const EXPECTED_CLUES_PER_ROUND = 25;
 // Lightweight formatting: convert **bold** markers to <strong> tags
 const applySimpleFormatting = (text) => {
     if (typeof text !== 'string') return text;
@@ -67,6 +88,163 @@ const sanitizeHTML = (html) => {
         FORBID_ATTR: ['onerror','onclick','onload'],
         ALLOWED_URI_REGEXP: /^https?:/i
     });
+};
+
+const buildCategoryCounts = (clues = []) => {
+    const counts = {};
+    clues.forEach(clue => {
+        const key = String(clue.Category || '').trim() || '<empty>';
+        counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+};
+
+const MIN_ROUND_CATEGORIES = 1;
+const MAX_ROUND_CATEGORIES = 5;
+const MIN_CLUES_PER_CATEGORY = 2;
+const MAX_CLUES_PER_CATEGORY = 5;
+const STANDARD_CATEGORIES = MAX_ROUND_CATEGORIES;
+const STANDARD_CLUES_PER_CATEGORY = MAX_CLUES_PER_CATEGORY;
+
+const buildRoundSummary = (roundNum, clues = [], structure = {}) => ({
+    round: roundNum,
+    total: clues.length,
+    categories: buildCategoryCounts(clues),
+    clueCountPerCategory: structure.clueCountPerCategory || 0,
+    structureIssues: structure.structureIssues || [],
+    isStandard: Boolean(structure.isStandard)
+});
+
+const describeCategoryIssues = (summary = {}) => {
+    const categories = summary.categories || {};
+    const expected = summary.clueCountPerCategory || 0;
+    const issues = [];
+
+    const entries = Object.entries(categories);
+    if (!entries.length) {
+        issues.push('No categories detected for this round.');
+        return issues;
+    }
+
+    entries.forEach(([category, count]) => {
+        const displayName = category || '<empty>';
+        if (expected && expected !== count) {
+            issues.push(`${displayName} has ${count} clues (expected ${expected}).`);
+        }
+    });
+    return issues;
+};
+
+const renderValidationDetails = (roundSummaries = [], options = {}) => {
+    if (!$setupErrorDetails) return;
+    if (!roundSummaries || !roundSummaries.length) {
+        $setupErrorDetails.innerHTML = '';
+        $setupErrorDetails.classList.add('hidden');
+        return;
+    }
+
+    const { hint, rowIssues = [] } = options;
+
+    const rows = roundSummaries.map(summary => {
+        const entries = Object.entries(summary.categories).sort(([a], [b]) => {
+            if (summary.categories[b] === summary.categories[a]) {
+                return (a || '').localeCompare(b || '');
+            }
+            return summary.categories[b] - summary.categories[a];
+        });
+
+        const formattedCategories = entries.length > 0
+            ? entries.map(([category, count]) => {
+                const displayName = category || '<empty>';
+                const severityClass = summary.clueCountPerCategory > 0 && count === summary.clueCountPerCategory ? 'text-gray-300' : 'text-yellow-300';
+                return `<span class="${severityClass}">${displayName} (${count})</span>`;
+            }).join(', ')
+            : '<span class="text-gray-500">No categories detected.</span>';
+
+        const categoryCount = entries.length;
+        const roundClues = summary.total;
+        const detailIssues = describeCategoryIssues(summary);
+        const structureIssuesMarkup = summary.structureIssues.length
+            ? `<div class="text-yellow-200 text-[10px] mt-1">Layout issues: ${summary.structureIssues.join(' ')}</div>`
+            : '';
+
+        return `
+            <div class="border-t border-yellow-500/40 pt-2">
+                <div class="text-white font-semibold text-xs">Round ${summary.round}: ${roundClues} clue${roundClues === 1 ? '' : 's'} across ${categoryCount} categor${categoryCount === 1 ? 'y' : 'ies'}.</div>
+                <div class="text-[11px] text-gray-300 flex flex-wrap gap-2 mt-1">${formattedCategories}</div>
+                ${detailIssues.length ? `<div class="text-yellow-200 text-[10px] mt-1">Issues: ${detailIssues.join(' ')}</div>` : ''}
+                ${structureIssuesMarkup}
+            </div>`;
+    }).join('');
+
+    const rowIssueMarkup = rowIssues.length
+        ? `<div class="text-[10px] text-yellow-200 mt-2">
+               <div class="font-semibold">Row diagnostics</div>
+               <ul class="list-disc list-inside space-y-1 mt-1">
+                   ${rowIssues.map(issue => `<li>${issue}</li>`).join('')}
+               </ul>
+           </div>`
+        : '';
+
+    const hintMarkup = hint ? `<div class="mt-2 text-yellow-200 text-[11px]">${hint}</div>` : '';
+    $setupErrorDetails.innerHTML = `
+        <details open class="rounded-xl border border-yellow-500 bg-gray-900/60 p-3 text-gray-200 text-[11px]">
+            <summary class="cursor-pointer font-semibold text-white">Diagnostic info</summary>
+            <div class="mt-2 space-y-2">${rows}</div>
+            ${rowIssueMarkup}
+            ${hintMarkup}
+        </details>`;
+    $setupErrorDetails.classList.remove('hidden');
+};
+
+const buildRoundStructure = (clues = []) => {
+    if (!clues.length) {
+        return {
+            valid: true,
+            categoriesCount: 0,
+            clueCountPerCategory: 0,
+            structureIssues: [],
+            isStandard: false
+        };
+    }
+
+    const categoryCounts = buildCategoryCounts(clues);
+    const categories = Object.keys(categoryCounts);
+    const clueCounts = categories.map(cat => categoryCounts[cat]);
+    const uniqueCounts = [...new Set(clueCounts)];
+    const clueCountPerCategory = uniqueCounts[0] || 0;
+    const issues = [];
+
+    if (categories.length < MIN_ROUND_CATEGORIES) {
+        issues.push(`Only ${categories.length} categor${categories.length === 1 ? 'y' : 'ies'} found; minimum is ${MIN_ROUND_CATEGORIES}.`);
+    }
+    if (categories.length > MAX_ROUND_CATEGORIES) {
+        issues.push(`Found ${categories.length} categories; maximum is ${MAX_ROUND_CATEGORIES}.`);
+    }
+
+    if (uniqueCounts.length > 1) {
+        issues.push('Categories must each have the same number of clues.');
+    } else if (clueCountPerCategory < MIN_CLUES_PER_CATEGORY || clueCountPerCategory > MAX_CLUES_PER_CATEGORY) {
+        issues.push(`Each category must have between ${MIN_CLUES_PER_CATEGORY} and ${MAX_CLUES_PER_CATEGORY} clues; found ${clueCountPerCategory}.`);
+    }
+
+    const valid = issues.length === 0;
+    return {
+        valid,
+        categoriesCount: categories.length,
+        clueCountPerCategory,
+        structureIssues: issues,
+        isStandard: valid && categories.length === STANDARD_CATEGORIES && clueCountPerCategory === STANDARD_CLUES_PER_CATEGORY
+    };
+};
+
+const formatRoundLayoutDescription = (structure, roundNum) => {
+    if (!structure || !structure.categoriesCount) {
+        return `Round ${roundNum} has no categories.`;
+    }
+    const cluePlural = structure.clueCountPerCategory === 1 ? 'clue' : 'clues';
+    const categoryPlural = structure.categoriesCount === 1 ? 'category' : 'categories';
+    return `Round ${roundNum}: ${structure.categoriesCount} ${categoryPlural} × ${structure.clueCountPerCategory} ${cluePlural}`;
 };
 
 // --- DOM REFERENCES ---
@@ -90,6 +268,7 @@ const $downloadTemplate = document.getElementById('downloadTemplate');
 const $defaultGameSelect = document.getElementById('defaultGameSelect');
 const $loadDefaultGameButton = document.getElementById('loadDefaultGameButton');
 const $setupMessage = document.getElementById('setup-message');
+const $setupErrorDetails = document.getElementById('setup-error-details');
 const $advancedEditButton = document.getElementById('advancedEditButton');
 const $dailyDoubleModal = document.getElementById('daily-double-modal');
 const $dailyDoubleTeamSelect = document.getElementById('dailyDoubleTeamSelect');
@@ -130,6 +309,7 @@ const $finalJeopardyButton = document.getElementById('finalJeopardyButton');
 const $newGameButton = document.getElementById('newGameButton');
 const $autoTimerEnabled = document.getElementById('autoTimerEnabled');
 const $autoTimerSeconds = document.getElementById('autoTimerSeconds');
+const $autoTimerSecondsWrapper = document.getElementById('autoTimerSecondsWrapper');
 const $colorTheme = document.getElementById('colorTheme');
 const $judgeModeControls = document.getElementById('judge-mode-controls');
 const $teamNameModal = document.getElementById('team-name-modal');
@@ -139,6 +319,29 @@ const $useDefaultNamesButton = document.getElementById('useDefaultNamesButton');
 const $dndNamesButton = document.getElementById('dndNamesButton');
 const $confirmNamesButton = document.getElementById('confirmNamesButton');
 const $explainAnswerButton = document.getElementById('explainAnswerButton');
+
+const clearFinalJeopardyStatus = () => {
+    if ($finalJeopardyStatus) {
+        $finalJeopardyStatus.classList.add('hidden');
+        $finalJeopardyStatus.textContent = '';
+        $finalJeopardyStatus.classList.remove('text-green-400', 'text-red-400', 'text-gray-300');
+    }
+};
+
+const updateFinalJeopardyStatus = () => {
+    if (!$finalJeopardyStatus) return;
+    $finalJeopardyStatus.classList.remove('hidden');
+    if (FINAL_JEOPARDY_CLUE) {
+        $finalJeopardyStatus.textContent = 'Final Jeopardy is available.';
+        $finalJeopardyStatus.classList.add('text-green-400');
+        $finalJeopardyStatus.classList.remove('text-gray-300', 'text-red-400');
+    } else {
+        $finalJeopardyStatus.textContent = 'No Final Jeopardy round is configured.';
+        $finalJeopardyStatus.classList.add('text-red-400');
+        $finalJeopardyStatus.classList.remove('text-gray-300', 'text-green-400');
+    }
+};
+const $finalJeopardyStatus = document.getElementById('final-jeopardy-status');
 const $clueExplanation = document.getElementById('clue-explanation');
 const $clueExplanationText = document.getElementById('clue-explanation-text');
 
@@ -1040,6 +1243,8 @@ const finalizeClue = () => {
  */
 const setupClues = (data) => {
     $setupMessage.classList.add('hidden'); // Clear previous messages
+    renderValidationDetails(null);
+    clearFinalJeopardyStatus();
 
     if (!data || data.length === 0) {
         $setupMessage.textContent = "Error: CSV data is empty or invalid.";
@@ -1047,86 +1252,129 @@ const setupClues = (data) => {
         return false;
     }
 
-    // 1. Map and sanitize all data from the CSV
-    ALL_CLUES = data.map((row, index) => ({
-        Category: row[CSV_HEADER_MAP.category] || '',
-        // For Final Jeopardy, the 'Value' is the category name (a string). Otherwise, it's a number.
-        Value: String(row[CSV_HEADER_MAP.round]).toUpperCase() === 'FJ'
-            ? row[CSV_HEADER_MAP.value] || ''
-            : parseInt(String(row[CSV_HEADER_MAP.value]).replace(/[$,]/g, '')) || 0,
-        Clue: row[CSV_HEADER_MAP.clue] || '',
-        Answer: row[CSV_HEADER_MAP.answer] || '',
-        Explanation: row[CSV_HEADER_MAP.explanation] || '',
-        MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
-        MediaURL: row[CSV_HEADER_MAP.mediaUrl] || '',
-        DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No',
-        Round: String(row[CSV_HEADER_MAP.round]).toUpperCase() || '0',
-        originalIndex: index // Keep track of the original position for BOARD_STATE
-    })).filter(clue => (clue.Value && clue.Category) || clue.Round === 'FJ'); // Keep valid clues or FJ
+    const mappedClues = data.map((row, index) => {
+        const trimmedCategory = String(row[CSV_HEADER_MAP.category] || '').trim();
+        const rawRound = String(row[CSV_HEADER_MAP.round] || '').trim().toUpperCase();
+        const normalizedRound = ['1', '2', 'FJ'].includes(rawRound) ? rawRound : '0';
+        const isFinal = normalizedRound === 'FJ';
+        const rawValue = row[CSV_HEADER_MAP.value];
+        const parsedValue = isFinal
+            ? (rawValue || '')
+            : parseInt(String(rawValue || '').replace(/[$,]/g, ''), 10) || 0;
 
-    // Find and store the Final Jeopardy clue separately
-    FINAL_JEOPARDY_CLUE = ALL_CLUES.find(c => c.Round === 'FJ') || null;
-    ALL_CLUES = ALL_CLUES.filter(c => c.Round !== 'FJ');
-    
-    // 2. Separate clues into rounds
+        const clue = {
+            Category: trimmedCategory,
+            Value: isFinal ? (rawValue || '') : parsedValue,
+            Clue: row[CSV_HEADER_MAP.clue] || '',
+            Answer: row[CSV_HEADER_MAP.answer] || '',
+            Explanation: row[CSV_HEADER_MAP.explanation] || '',
+            MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
+            MediaURL: row[CSV_HEADER_MAP.mediaUrl] || '',
+            DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No',
+            Round: normalizedRound,
+            originalIndex: index,
+            sourceRow: row.__rowNumber || (index + 1)
+        };
+
+        const issues = [];
+        const hasValidRound = normalizedRound !== '0';
+        const hasCategory = Boolean(trimmedCategory);
+        const hasValue = isFinal ? Boolean(rawValue) : Boolean(parsedValue);
+
+        if (!hasValidRound) {
+            issues.push('Round missing or invalid.');
+        }
+        if (!isFinal && !hasCategory) {
+            issues.push('Category missing.');
+        }
+        if (!isFinal && !hasValue) {
+            issues.push('Value missing or not a number.');
+        }
+        if (isFinal && !hasCategory) {
+            issues.push('Final Jeopardy category missing.');
+        }
+
+        if (issues.length) {
+            clue.__reason = issues.join(' ');
+        }
+        clue.__isPlayable = hasValidRound && (isFinal || (hasCategory && hasValue));
+        return clue;
+    });
+
+    const rowIssues = mappedClues
+        .filter(clue => !clue.__isPlayable)
+        .map(clue => `${clue.sourceRow ? `Row ${clue.sourceRow}` : 'Unknown row'}: ${clue.__reason || 'Missing required fields.'}`);
+
+    FINAL_JEOPARDY_CLUE = mappedClues.find(clue => clue.Round === 'FJ' && clue.__isPlayable) || null;
+    const playableClues = mappedClues.filter(clue => clue.__isPlayable && clue.Round !== 'FJ');
+    ALL_CLUES = playableClues;
+    ALL_CLUES.forEach((clue, idx) => {
+        clue.originalIndex = idx;
+    });
+
     ROUND_1_CLUES = ALL_CLUES.filter(c => c.Round === '1');
     ROUND_2_CLUES = ALL_CLUES.filter(c => c.Round === '2');
 
-    // 3. Validate the rounds
-    const isRound1Valid = ROUND_1_CLUES.length === 25 || ROUND_1_CLUES.length === 0;
-    const isRound2Valid = ROUND_2_CLUES.length === 25 || ROUND_2_CLUES.length === 0;
-
-    // Helper function to find category count issues
-    const findCategoryErrors = (clues, roundNum) => {
-        if (clues.length === 0) return null;
-        const categoryCounts = clues.reduce((acc, clue) => {
-            const cat = clue.Category.trim(); // Use trimmed category name
-            acc[cat] = (acc[cat] || 0) + 1;
-            return acc;
-        }, {});
-
-        const categories = Object.keys(categoryCounts);
-        if (categories.length !== 5) {
-            return `In Round ${roundNum}, found ${categories.length} categories instead of the required 5. The categories found were: ${categories.join(', ')}.`;
-        }
-
-        for (const cat of categories) {
-            if (categoryCounts[cat] !== 5) {
-                return `In Round ${roundNum}, category "${cat}" has ${categoryCounts[cat]} clues instead of the required 5.`;
-            }
-        }
-
-        return null;
+    const roundStructures = {
+        1: buildRoundStructure(ROUND_1_CLUES),
+        2: buildRoundStructure(ROUND_2_CLUES)
     };
 
-    // New, more detailed validation logic
-    if (ROUND_1_CLUES.length === 0 && ROUND_2_CLUES.length === 0) {
+    const validationRoundSummaries = [
+        buildRoundSummary(1, ROUND_1_CLUES, roundStructures[1]),
+        buildRoundSummary(2, ROUND_2_CLUES, roundStructures[2]),
+    ];
+
+    const isRound1Valid = !ROUND_1_CLUES.length || roundStructures[1].valid;
+    const isRound2Valid = !ROUND_2_CLUES.length || roundStructures[2].valid;
+
+    if (!ROUND_1_CLUES.length && !ROUND_2_CLUES.length) {
         $setupMessage.textContent = "CSV Error: No valid clues for Round 1 or Round 2 were found in the file.";
         $setupMessage.classList.remove('hidden');
+        renderValidationDetails(validationRoundSummaries, {
+            hint: 'No clues detected for either round. Check the header row and delimiter.',
+            rowIssues
+        });
         return false;
     }
 
     if (!isRound1Valid) {
-        let errorMsg = findCategoryErrors(ROUND_1_CLUES, 1);
-        if (!errorMsg) {
-            errorMsg = `Round 1 is incomplete. Found ${ROUND_1_CLUES.length} clues instead of the required 25.`;
-        }
+        const errorMsg = roundStructures[1].structureIssues.join(' ') || 'Round 1 layout is invalid.';
         $setupMessage.textContent = `CSV Error: ${errorMsg}`;
         $setupMessage.classList.remove('hidden');
+        renderValidationDetails(validationRoundSummaries, { hint: errorMsg, rowIssues });
         return false;
     }
 
     if (!isRound2Valid) {
-        let errorMsg = findCategoryErrors(ROUND_2_CLUES, 2);
-        if (!errorMsg) {
-            errorMsg = `Round 2 is incomplete. Found ${ROUND_2_CLUES.length} clues instead of the required 25.`;
-        }
+        const errorMsg = roundStructures[2].structureIssues.join(' ') || 'Round 2 layout is invalid.';
         $setupMessage.textContent = `CSV Error: ${errorMsg}`;
         $setupMessage.classList.remove('hidden');
+        renderValidationDetails(validationRoundSummaries, { hint: errorMsg, rowIssues });
         return false;
     }
 
-    // 4. Set the initial game state
+    const layoutWarnings = [];
+    if (ROUND_1_CLUES.length && !roundStructures[1].isStandard) {
+        layoutWarnings.push(formatRoundLayoutDescription(roundStructures[1], 1));
+    }
+    if (ROUND_2_CLUES.length && !roundStructures[2].isStandard) {
+        layoutWarnings.push(formatRoundLayoutDescription(roundStructures[2], 2));
+    }
+
+    if (layoutWarnings.length) {
+        const warningText = layoutWarnings.join('; ');
+        const proceed = window.confirm(`This game uses a non-standard board: ${warningText}. Continue?`);
+        if (!proceed) {
+            $setupMessage.textContent = 'Loading canceled because the board layout does not match the classic 5×5 format.';
+            $setupMessage.classList.remove('hidden');
+            return false;
+        }
+        $setupMessage.textContent = `Confirmed layout: ${warningText}`;
+        $setupMessage.classList.remove('hidden');
+        $setupMessage.classList.add('text-yellow-400');
+    }
+
     if (ROUND_1_CLUES.length > 0) {
         CURRENT_ROUND = 1;
         CLUES = ROUND_1_CLUES;
@@ -1136,16 +1384,16 @@ const setupClues = (data) => {
     }
     CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
 
-    // 5. Initialize board state for ALL clues
     BOARD_STATE = new Array(ALL_CLUES.length).fill(false);
 
-    // Show Final Jeopardy button if a clue exists for it
     if (FINAL_JEOPARDY_CLUE) {
         $finalJeopardyButton.classList.remove('hidden');
     } else {
         $finalJeopardyButton.classList.add('hidden');
     }
 
+    renderValidationDetails(null);
+    updateFinalJeopardyStatus();
     return true;
 };
 
@@ -1156,9 +1404,17 @@ const setupClues = (data) => {
  * @param {Array<boolean>} [initialBoardState=[]] - Optional array of played status for loading state.
  */
 const startGame = (numTeams, initialScores = [], initialBoardState = [], options = {}) => {
-    const { preservePerformance = false } = options;
+    const { preservePerformance = false, preserveStartTime = false } = options;
     if (!preservePerformance) {
         PERFORMANCE_DATA = {}; // Reset performance data for a new game
+    }
+    if (!preserveStartTime) {
+        GAME_START_TIME = new Date();
+    }
+    GAME_END_TIME = null;
+    JUDGE_MODE_ACTIVE = false;
+    if ($judgeModeControls) {
+        $judgeModeControls.classList.add('hidden');
     }
 
     // Initialize teams if not already configured
@@ -1390,6 +1646,7 @@ const scoreFinalJeopardy = (teamIndex, isCorrect) => {
  * Starts the game in Judge Mode (no scores, just the board).
  */
 const startJudgeMode = () => {
+    JUDGE_MODE_ACTIVE = true;
     $setupScreen.classList.add('hidden');
     $gameControlsContainer.classList.add('hidden');
     $judgeModeControls.classList.remove('hidden');
@@ -1695,6 +1952,7 @@ const saveGameStateToSession = () => {
     }
 
     try {
+        const themeValue = $colorTheme ? $colorTheme.value : 'classic';
         const gameState = {
             allClues: ALL_CLUES,
             round1Clues: ROUND_1_CLUES,
@@ -1702,8 +1960,18 @@ const saveGameStateToSession = () => {
             currentRound: CURRENT_ROUND,
             teams: TEAMS,
             boardState: BOARD_STATE,
+            performance: PERFORMANCE_DATA,
             gameTitle: $gameTitle.textContent
         };
+        if (JUDGE_CODE) {
+            gameState.judgeCode = JUDGE_CODE;
+        }
+        gameState.judgeModeActive = JUDGE_MODE_ACTIVE;
+        gameState.autoTimerEnabled = AUTO_TIMER_ENABLED;
+        gameState.autoTimerSeconds = AUTO_TIMER_SECONDS;
+        gameState.colorTheme = themeValue;
+        gameState.gameStartTime = GAME_START_TIME ? GAME_START_TIME.toISOString() : null;
+        gameState.gameEndTime = GAME_END_TIME ? GAME_END_TIME.toISOString() : null;
         sessionStorage.setItem('jeopardyGameState', JSON.stringify(gameState));
     } catch (e) {
         console.error("Could not save game state to session storage:", e);
@@ -1728,12 +1996,51 @@ const loadGameStateFromSession = () => {
         CLUES = CURRENT_ROUND === 1 ? ROUND_1_CLUES : ROUND_2_CLUES;
         CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
         $gameTitle.textContent = savedState.gameTitle;
+        PERFORMANCE_DATA = savedState.performance && typeof savedState.performance === 'object' ? savedState.performance : {};
+
+        JUDGE_CODE = savedState.judgeCode || null;
+        if (JUDGE_CODE) {
+            $judgeModeContainer.classList.remove('hidden');
+        } else {
+            $judgeModeContainer.classList.add('hidden');
+        }
+
+        const themeValue = savedState.colorTheme || ($colorTheme ? $colorTheme.value : 'classic');
+        applyTheme(themeValue);
+        if ($colorTheme) {
+            $colorTheme.value = themeValue;
+        }
+
+        AUTO_TIMER_ENABLED = savedState.autoTimerEnabled === true;
+        if ($autoTimerEnabled) {
+            $autoTimerEnabled.checked = AUTO_TIMER_ENABLED;
+        }
+        const parsedSeconds = parseInt(savedState.autoTimerSeconds, 10);
+        if (!Number.isNaN(parsedSeconds) && parsedSeconds >= 5 && parsedSeconds <= 120) {
+            AUTO_TIMER_SECONDS = parsedSeconds;
+        }
+        if ($autoTimerSeconds) {
+            $autoTimerSeconds.value = `${AUTO_TIMER_SECONDS}`;
+        }
+        updateAutoTimerSecondsVisibility();
+
+        GAME_START_TIME = savedState.gameStartTime ? new Date(savedState.gameStartTime) : null;
+        GAME_END_TIME = savedState.gameEndTime ? new Date(savedState.gameEndTime) : null;
+        const resumeJudgeMode = savedState.judgeModeActive && Boolean(JUDGE_CODE);
 
         // Start the game with the restored data
-        startGame(savedState.teams.length, savedState.teams.map(t => t.score), savedState.boardState);
+        startGame(
+            savedState.teams.length,
+            savedState.teams.map(t => t.score),
+            savedState.boardState,
+            { preservePerformance: true, preserveStartTime: true }
+        );
         // Restore team names after starting
         TEAMS.forEach((team, i) => team.name = savedState.teams[i].name);
         updateScoreboard(); // Final update with correct names
+        if (resumeJudgeMode) {
+            startJudgeMode();
+        }
 
     } catch (e) {
         console.error("Could not load game state from session storage:", e);
@@ -1785,16 +2092,17 @@ const loadGameFromFile = (file) => {
             }
 
             // 3. Find the actual header row
-            headerRowIndex = data.findIndex((row, index) => index >= nextRow && row[0] === 'Category');
+            headerRowIndex = findHeaderRowIndex(data, nextRow);
             if (headerRowIndex === -1) headerRowIndex = nextRow; // Fallback
             const headers = data[headerRowIndex];
             const clueDataRows = data.slice(headerRowIndex + 1);
 
-            const formattedData = clueDataRows.map(row => {
+            const formattedData = clueDataRows.map((row, idx) => {
                 const obj = {};
                 headers.forEach((header, i) => {
-                    obj[header.trim()] = row[i]; // Trim header to avoid issues with whitespace
+                    obj[header.trim()] = row[i];
                 });
+                obj.__rowNumber = headerRowIndex + 2 + idx;
                 return obj;
             });
 
@@ -1892,16 +2200,17 @@ const loadDefaultGame = async () => {
     }
 
     // Manually construct data objects to pass to setupClues
-    headerRowIndex = data.findIndex((row, index) => index >= nextRow && row[0] === 'Category');
+    headerRowIndex = findHeaderRowIndex(data, nextRow);
     if (headerRowIndex === -1) headerRowIndex = nextRow; // Fallback
     const headers = data[headerRowIndex];
     const clueDataRows = data.slice(headerRowIndex + 1);
 
-    const formattedData = clueDataRows.map(row => {
+    const formattedData = clueDataRows.map((row, idx) => {
         const obj = {};
         headers.forEach((header, i) => {
             obj[header.trim()] = row[i];
         });
+        obj.__rowNumber = headerRowIndex + 2 + idx;
         return obj;
     });
 
@@ -1956,6 +2265,7 @@ const loadDefaultGame = async () => {
 const generateSaveCode = () => {
     try {
         const title = $gameTitle ? $gameTitle.textContent : "Dr. Baker's Marketing Jeopardy-O-Matic!";
+        const themeValue = $colorTheme ? $colorTheme.value : 'classic';
         const state = {
             version: 2,
             title,
@@ -1968,6 +2278,10 @@ const generateSaveCode = () => {
             teams: TEAMS.map(team => ({ ...team })),
             performance: PERFORMANCE_DATA,
             judgeCode: JUDGE_CODE,
+            judgeModeActive: JUDGE_MODE_ACTIVE,
+            autoTimerEnabled: AUTO_TIMER_ENABLED,
+            autoTimerSeconds: AUTO_TIMER_SECONDS,
+            colorTheme: themeValue,
             gameStartTime: GAME_START_TIME ? GAME_START_TIME.toISOString() : null,
             gameEndTime: GAME_END_TIME ? GAME_END_TIME.toISOString() : null,
             teamCount: TEAMS.length
@@ -2086,9 +2400,32 @@ const restoreGameFromFullState = (state) => {
     GAME_START_TIME = state.gameStartTime ? new Date(state.gameStartTime) : null;
     GAME_END_TIME = state.gameEndTime ? new Date(state.gameEndTime) : null;
 
+    const themeValue = state.colorTheme || ($colorTheme ? $colorTheme.value : 'classic');
+    applyTheme(themeValue);
+    if ($colorTheme) {
+        $colorTheme.value = themeValue;
+    }
+
+    AUTO_TIMER_ENABLED = state.autoTimerEnabled === true;
+    if ($autoTimerEnabled) {
+        $autoTimerEnabled.checked = AUTO_TIMER_ENABLED;
+    }
+    const parsedSeconds = parseInt(state.autoTimerSeconds, 10);
+    if (!Number.isNaN(parsedSeconds) && parsedSeconds >= 5 && parsedSeconds <= 120) {
+        AUTO_TIMER_SECONDS = parsedSeconds;
+    }
+    if ($autoTimerSeconds) {
+        $autoTimerSeconds.value = `${AUTO_TIMER_SECONDS}`;
+    }
+    updateAutoTimerSecondsVisibility();
+
     const initialScores = TEAMS.map(team => team.score);
-    startGame(teamCount, initialScores, boardState, { preservePerformance: true });
+    startGame(teamCount, initialScores, boardState, { preservePerformance: true, preserveStartTime: true });
     updateScoreboard();
+    const shouldResumeJudge = Boolean(state.judgeModeActive) && Boolean(JUDGE_CODE);
+    if (shouldResumeJudge) {
+        startJudgeMode();
+    }
 
     if (FINAL_JEOPARDY_CLUE) {
         $finalJeopardyButton.classList.remove('hidden');
@@ -2371,11 +2708,21 @@ if ($customGameMenuButton && $customGameMenu) {
 }
 
 // Auto timer settings
+const updateAutoTimerSecondsVisibility = () => {
+    if (!$autoTimerEnabled || !$autoTimerSecondsWrapper) return;
+    if ($autoTimerEnabled.checked) {
+        $autoTimerSecondsWrapper.classList.remove('hidden');
+    } else {
+        $autoTimerSecondsWrapper.classList.add('hidden');
+    }
+};
 if ($autoTimerEnabled) {
     $autoTimerEnabled.addEventListener('change', () => {
         AUTO_TIMER_ENABLED = $autoTimerEnabled.checked;
+        updateAutoTimerSecondsVisibility();
     });
     AUTO_TIMER_ENABLED = $autoTimerEnabled.checked;
+    updateAutoTimerSecondsVisibility();
 }
 if ($autoTimerSeconds) {
     $autoTimerSeconds.addEventListener('change', () => {
@@ -2528,16 +2875,17 @@ const loadFromGoogleSheet = async () => {
             nextRow++;
         }
 
-        headerRowIndex = data.findIndex((row, index) => index >= nextRow && row[0] === 'Category');
+        headerRowIndex = findHeaderRowIndex(data, nextRow);
         if (headerRowIndex === -1) headerRowIndex = nextRow;
         const headers = data[headerRowIndex];
         const clueDataRows = data.slice(headerRowIndex + 1);
 
-        const formattedData = clueDataRows.map(row => {
+        const formattedData = clueDataRows.map((row, idx) => {
             const obj = {};
             headers.forEach((header, i) => {
                 obj[header.trim()] = row[i];
             });
+            obj.__rowNumber = headerRowIndex + 2 + idx;
             return obj;
         });
 

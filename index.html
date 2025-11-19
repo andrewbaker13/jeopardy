@@ -150,7 +150,17 @@
                     <button id="closeGoogleSheetHelpButton" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
                 <div class="text-gray-300 text-sm space-y-3 max-h-96 overflow-y-auto">
-                    <p>To load a game directly from Google Sheets, make the sheet (and tab) public and paste its link:</p>
+                    <p>To load a game directly from Google Sheets, make the sheet (and the specific tab) public and paste its link:</p>
+                    <div class="text-sm text-gray-300 bg-gray-800/70 p-3 rounded-lg space-y-2">
+                        <p><strong>Checklist before loading:</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Use <strong>Share → Anyone with the link</strong> so the exporter can fetch the tab without signing in.</li>
+                            <li>Open the desired tab (not just Sheet1) and copy the URL from your browser so it includes the correct <code>gid</code>.</li>
+                            <li>For extra reliability, use <strong>File → Publish to the web</strong> and publish *just that tab* (choose TSV export if offered). Publishing the whole workbook may still serve the wrong page.</li>
+                            <li>Once that specific tab is public, paste the URL above and click “Load from Google Sheet.”</li>
+                        </ul>
+                        <p class="text-xs text-gray-400">If the import still shows errors, open the normalized TSV export in a browser to inspect delimiter/row issues before retrying.</p>
+                    </div>
                     <ol class="list-decimal list-inside space-y-2 pl-2">
                         <li>Open your sheet and select the tab you want (the URL will include <code>gid=...</code> for that tab).</li>
                         <li>Make it public:
@@ -226,12 +236,12 @@
                         </select>
                     </label>
 
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
                         <label class="flex items-center gap-2">
                             <input id="autoTimerEnabled" type="checkbox" class="rounded border-gray-600 bg-gray-700 text-yellow-400 focus:ring-yellow-500">
                             <span class="text-gray-300 font-semibold">Auto Timer</span>
                         </label>
-                        <label class="flex items-center gap-2 text-sm">
+                        <label id="autoTimerSecondsWrapper" class="flex items-center gap-2 text-sm hidden">
                             <span class="text-gray-300">Seconds:</span>
                             <input id="autoTimerSeconds" type="number" min="5" max="120" value="20" class="w-20 rounded-lg bg-gray-700 text-white p-1 border border-gray-600 text-right focus:ring-yellow-500 focus:border-yellow-500">
                         </label>
@@ -262,6 +272,8 @@
             <button id="loadPreviousGameButton" class="w-full bg-yellow-600 hover:bg-yellow-700 text-gray-900 font-bold py-2 px-3 rounded-lg transition text-sm">Load Previous Game</button>
 
             <p id="setup-message" class="text-sm text-red-400 mt-2 hidden">Please upload a valid CSV file, or load a default/saved game.</p>
+            <p id="final-jeopardy-status" class="text-sm text-gray-300 mt-2 hidden"></p>
+            <div id="setup-error-details" class="text-xs text-gray-300 mt-2 hidden"></div>
         </div>
 
         <!-- Save Game Modal -->
