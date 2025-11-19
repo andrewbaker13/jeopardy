@@ -19,13 +19,42 @@
     </head>
 <body class="min-h-screen p-4 sm:p-8">
 
-    <div id="app" class="max-w-7xl mx-auto">
-        <h1 id="game-title" class="font-jeopardy text-5xl md:text-6xl font-bold text-yellow-400 mb-6 text-center tracking-tighter">Dr. Baker's Marketing Jeopardy-O-Matic!</h1>
-        
-        <!-- Scoreboard (Always Visible) -->
-            <div id="scoreboard" class="flex flex-wrap justify-center gap-4 mb-2">
-            <!-- Team Score Cards will be injected here -->
-        </div>
+    <div id="app" class="max-w-7xl mx-auto space-y-10">
+        <!-- Hero / Scoreboard -->
+        <section id="hero-panel" class="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-10 sm:px-10 sm:py-12 shadow-[0_25px_65px_rgba(2,6,23,0.65)]">
+            <div class="hero-panel__glow" aria-hidden="true"></div>
+            <div class="hero-panel__grid">
+                <div class="hero-panel__intro space-y-6">
+                    <div id="loadStatusIndicator" class="load-status load-status--idle" role="status" aria-live="polite">
+                        <span id="loadStatusText" class="load-status__text">Ready to load a game</span>
+                        <span class="load-status__dot" aria-hidden="true"></span>
+                    </div>
+                    <div class="space-y-4">
+                        <h1 id="game-title" class="font-jeopardy text-4xl sm:text-5xl font-bold text-yellow-300 tracking-tight">
+                            Dr. Baker's Marketing Jeopardy-O-Matic!
+                        </h1>
+                        <p class="text-lg text-slate-200 max-w-2xl">
+                            Load your own deck or jump into a curated library game. Customize teams, themes, and timers — then smash that Start Game button when the hype feels right.
+                        </p>
+                    </div>
+                    <div class="hero-panel__badges">
+                        <div class="hero-panel__badge">
+                            <span class="hero-panel__badge-label">New</span>
+                            Lightning-fast CSV + Google Sheet importer
+                        </div>
+                        <div class="hero-panel__badge">
+                            <span class="hero-panel__badge-label">Popular</span>
+                            Pre-loaded games curated for marketing showdowns
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-panel__scoreboard space-y-4">
+                    <div class="hero-panel__scoreboard-card">
+                        <div id="scoreboard" class="scoreboard-grid hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Team Name Modal -->
         <div id="team-name-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">
@@ -184,46 +213,87 @@
         </div>
 
         <!-- Setup Screen -->
-        <div id="setup-screen" class="bg-gray-800 p-6 rounded-xl shadow-2xl space-y-6">
-            <h2 class="text-2xl font-bold text-white mb-2 text-center">Game Setup</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section id="setup-screen" class="rounded-3xl bg-slate-900/80 p-6 sm:p-10 shadow-2xl border border-white/5 backdrop-blur">
+            <div class="text-center space-y-3">
+                <p class="text-xs uppercase tracking-[0.4em] text-slate-300">Game Setup</p>
+                <h2 class="text-3xl font-bold text-white">Choose your launch path</h2>
+                <p class="text-base text-slate-300 max-w-2xl mx-auto">Bring your own custom deck or spin up a ready-made board. Everything below updates in real time.</p>
+            </div>
+
+            <div class="setup-card-grid">
                 <!-- Left Column: Custom Game -->
-                <div class="bg-gray-700 p-4 rounded-lg space-y-4 flex flex-col">
-                    <h3 class="text-xl font-bold text-yellow-400 text-center">Load Custom Game</h3>
-                    <input type="file" id="csvFile" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100" />
-                    <div class="flex-grow"></div> <!-- Pushes buttons to the bottom -->
-                    <div class="space-y-2">
-                        <button id="customGameMenuButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Make Your Own Custom Game</button>
-                        <div id="customGameMenu" class="hidden space-y-2 pl-2 border-l border-gray-600">
-                            <button id="downloadTemplate" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Download Template CSV</button>
-                            <button id="downloadTemplateTSV" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Download Template TSV</button>
-                            <button id="uploadTipsButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Custom Upload Tips</button>
-                            <div class="pt-2 border-t border-gray-600"></div>
-                            <label class="block text-gray-300 text-sm">Load from Google Sheet (public):</label>
-                            <input id="googleSheetUrlInput" type="url" placeholder="Paste Google Sheet link (public)" class="w-full bg-gray-700 text-white p-2 rounded border border-gray-600" />
-                            <a href="https://docs.google.com/spreadsheets/d/1iCO1-LvMTzRg2O2AqUzJ6ALqWIkBi0Mtni9kDuCoVAk/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-300 hover:text-blue-200 underline">See sample Google Sheet</a>
-                            <button id="loadFromGoogleSheetButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Load from Google Sheet</button>
-                            <button id="googleSheetHelpLink" class="text-xs text-blue-300 hover:text-blue-200 underline text-left">How to share/publish a Google Sheet</button>
-                        </div>
+                <article class="setup-card glass-card">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-yellow-300">Load Custom Game</h3>
+                        <span class="setup-chip">CSV/TSV</span>
                     </div>
-                </div>
+                    <p class="text-sm text-slate-300 mt-2 mb-4">Upload your worksheet or connect a published Google Sheet for collaborative editing.</p>
+                    <label class="dropzone" for="csvFile">
+                        <span class="dropzone__label">Drag &amp; drop or browse</span>
+                        <span class="dropzone__hint">CSV / TSV supported</span>
+                        <input type="file" id="csvFile" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="sr-only">
+                    </label>
+                    <div class="text-xs text-slate-400 text-center mt-2">Need inspo? Expand the custom game tools below.</div>
+                    <button id="customGameMenuButton" class="setup-secondary-btn mt-4">Make Your Own Custom Game</button>
+                    <div id="customGameMenu" class="hidden space-y-2 border border-white/10 rounded-2xl p-4 mt-4 bg-slate-900/70">
+                        <button id="downloadTemplate" class="setup-tertiary-btn">Download Template CSV</button>
+                        <button id="downloadTemplateTSV" class="setup-tertiary-btn">Download Template TSV</button>
+                        <button id="uploadTipsButton" class="setup-tertiary-btn">Custom Upload Tips</button>
+                        <div class="pt-2 border-t border-white/10"></div>
+                        <label class="block text-slate-200 text-sm font-semibold">Load from Google Sheet (public):</label>
+                        <input id="googleSheetUrlInput" type="url" placeholder="Paste Google Sheet link (public)" class="setup-input">
+                        <a href="https://docs.google.com/spreadsheets/d/1iCO1-LvMTzRg2O2AqUzJ6ALqWIkBi0Mtni9kDuCoVAk/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-300 hover:text-blue-200 underline">See sample Google Sheet</a>
+                        <button id="loadFromGoogleSheetButton" class="setup-primary-btn">Load from Google Sheet</button>
+                        <button id="googleSheetHelpLink" class="text-xs text-blue-300 hover:text-blue-200 underline text-left">How to share/publish a Google Sheet</button>
+                    </div>
+                </article>
 
                 <!-- Right Column: Pre-Loaded Game -->
-                <div class="bg-gray-700 p-4 rounded-lg space-y-4 flex flex-col">
-                    <h3 class="text-xl font-bold text-yellow-400 text-center">Use Pre-Loaded Game</h3>
-                    <select id="defaultGameSelect" class="w-full bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition"></select>
-                    <button id="loadDefaultGameButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Load from Library</button>
+                <article class="setup-card glass-card">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-yellow-300">Use Pre-Loaded Game</h3>
+                        <span class="setup-chip setup-chip--teal">Library</span>
+                    </div>
+                    <p class="text-sm text-slate-300 mt-2 mb-4">Tap into curated game boards sorted by topic, difficulty, and vibe.</p>
+                    <select id="defaultGameSelect" class="setup-select"></select>
+                    <button id="loadDefaultGameButton" class="setup-primary-btn mt-4">Load from Library</button>
+                </article>
+            </div>
+
+            <div class="setup-steps">
+                <div class="setup-step">
+                    <div class="setup-step__badge">1</div>
+                    <div>
+                        <p class="setup-step__title">Teams &amp; timers</p>
+                        <p class="setup-step__desc">Decide how many groups play and if the auto timer is enabled.</p>
+                    </div>
+                </div>
+                <div class="setup-step">
+                    <div class="setup-step__badge">2</div>
+                    <div>
+                        <p class="setup-step__title">Visual theme</p>
+                        <p class="setup-step__desc">Pick a palette so the board matches your session mood.</p>
+                    </div>
+                </div>
+                <div class="setup-step">
+                    <div class="setup-step__badge">3</div>
+                    <div>
+                        <p class="setup-step__title">Launch controls</p>
+                        <p class="setup-step__desc">Start fresh, load a save, or jump into judge mode.</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Game Settings -->
-            <div class="pt-4 border-t border-gray-600">
-                <h3 class="text-lg font-bold text-yellow-400 mb-2">Game Settings</h3>
-                <div class="space-y-4">
-                    <label class="block">
-                        <span class="text-gray-300 font-semibold">Number of Teams</span>
-                        <select id="numTeams" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 focus:ring-yellow-500 focus:border-yellow-500">
+            <div class="setup-settings">
+                <div class="setup-settings__header">
+                    <h3 class="text-xl font-bold text-white">Game Settings</h3>
+                    <p class="text-sm text-slate-400">Everything here can be updated mid-game</p>
+                </div>
+                <div class="setup-settings__grid">
+                    <div>
+                        <label class="setup-label" for="numTeams">Number of Teams</label>
+                        <select id="numTeams" class="setup-select">
                             <option value="2">2 Teams</option>
                             <option value="3" selected>3 Teams</option>
                             <option value="4">4 Teams</option>
@@ -234,47 +304,71 @@
                             <option value="9">9 Teams</option>
                             <option value="10">10 Teams</option>
                         </select>
-                    </label>
-
-                    <div class="flex flex-wrap items-center gap-3">
-                        <label class="flex items-center gap-2">
-                            <input id="autoTimerEnabled" type="checkbox" class="rounded border-gray-600 bg-gray-700 text-yellow-400 focus:ring-yellow-500">
-                            <span class="text-gray-300 font-semibold">Auto Timer</span>
+                    </div>
+                    <div class="auto-timer-controls">
+                        <label class="setup-toggle">
+                            <input id="autoTimerEnabled" type="checkbox">
+                            <span class="setup-toggle__appearance"></span>
+                            <span class="setup-toggle__label">Auto Timer</span>
                         </label>
-                        <label id="autoTimerSecondsWrapper" class="flex items-center gap-2 text-sm hidden">
-                            <span class="text-gray-300">Seconds:</span>
-                            <input id="autoTimerSeconds" type="number" min="5" max="120" value="20" class="w-20 rounded-lg bg-gray-700 text-white p-1 border border-gray-600 text-right focus:ring-yellow-500 focus:border-yellow-500">
+                        <label id="autoTimerSecondsWrapper" class="auto-timer-seconds hidden">
+                            <span>Seconds</span>
+                            <input id="autoTimerSeconds" type="number" min="5" max="120" value="20" class="setup-input w-24 text-center">
                         </label>
                     </div>
-
-                    <label class="block">
-                        <span class="text-gray-300 font-semibold">Color Theme</span>
-                        <select id="colorTheme" class="mt-1 block w-full rounded-lg bg-gray-700 text-white p-2 border border-gray-600 focus:ring-yellow-500 focus:border-yellow-500">
+                    <div class="theme-picker">
+                        <span class="setup-label">Color Theme</span>
+                        <div id="themeSwatches" class="theme-pill-group" role="group" aria-label="Choose a color theme">
+                            <button type="button" class="theme-pill" data-theme="classic">
+                                <span class="theme-pill__dot theme-pill__dot--classic"></span>
+                                <span>Classic</span>
+                            </button>
+                            <button type="button" class="theme-pill" data-theme="light">
+                                <span class="theme-pill__dot theme-pill__dot--light"></span>
+                                <span>Light</span>
+                            </button>
+                            <button type="button" class="theme-pill" data-theme="dark">
+                                <span class="theme-pill__dot theme-pill__dot--dark"></span>
+                                <span>Dark</span>
+                            </button>
+                            <button type="button" class="theme-pill" data-theme="christmas">
+                                <span class="theme-pill__dot theme-pill__dot--holiday"></span>
+                                <span>Holiday</span>
+                            </button>
+                            <button type="button" class="theme-pill" data-theme="highcontrast">
+                                <span class="theme-pill__dot theme-pill__dot--contrast"></span>
+                                <span>Contrast</span>
+                            </button>
+                        </div>
+                        <select id="colorTheme" class="sr-only">
                             <option value="classic" selected>Jeopardy Classic</option>
                             <option value="light">Light Mode</option>
                             <option value="dark">Dark Mode</option>
                             <option value="christmas">Christmas Mode</option>
                             <option value="highcontrast">High Contrast</option>
                         </select>
-                    </label>
+                    </div>
                 </div>
             </div>
 
             <!-- Judge Mode -->
-            <div id="judge-mode-container" class="hidden">
-                <p class="text-center text-gray-500 my-2">or</p>
-                <button id="judgeModeButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">Enter Judge Mode</button>
+            <div id="judge-mode-container" class="hidden mt-6 text-center">
+                <p class="text-sm text-slate-400 mb-3">or</p>
+                <button id="judgeModeButton" class="setup-secondary-btn w-full">Enter Judge Mode</button>
             </div>
 
-            <button id="startGameButton" class="w-full bg-gray-600 text-gray-400 font-extrabold text-lg py-3 px-4 rounded-lg transition cursor-not-allowed" disabled>
-                Start Game
-            </button>
-            <button id="loadPreviousGameButton" class="w-full bg-yellow-600 hover:bg-yellow-700 text-gray-900 font-bold py-2 px-3 rounded-lg transition text-sm">Load Previous Game</button>
+            <div class="setup-ctas">
+                <button id="startGameButton" class="cta-primary" disabled>
+                    <span>Start Game</span>
+                    <span class="cta-primary__glow"></span>
+                </button>
+                <button id="loadPreviousGameButton" class="cta-ghost">Load Previous Game</button>
+            </div>
 
-            <p id="setup-message" class="text-sm text-red-400 mt-2 hidden">Please upload a valid CSV file, or load a default/saved game.</p>
-            <p id="final-jeopardy-status" class="text-sm text-gray-300 mt-2 hidden"></p>
-            <div id="setup-error-details" class="text-xs text-gray-300 mt-2 hidden"></div>
-        </div>
+            <p id="setup-message" class="setup-inline-alert setup-inline-alert--error hidden">Please upload a valid CSV file, or load a default/saved game.</p>
+            <p id="final-jeopardy-status" class="text-sm text-slate-300 mt-2 hidden"></p>
+            <div id="setup-error-details" class="text-xs text-slate-400 mt-2 hidden"></div>
+        </section>
 
         <!-- Save Game Modal -->
         <div id="save-game-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay transition-opacity">

@@ -255,6 +255,11 @@ const $startGameButton = document.getElementById('startGameButton');
 const $setupScreen = document.getElementById('setup-screen');
 const $gameBoard = document.getElementById('game-board');
 const $scoreboard = document.getElementById('scoreboard');
+const $loadStatusIndicator = document.getElementById('loadStatusIndicator');
+const $loadStatusText = document.getElementById('loadStatusText');
+const setGameActiveState = (isActive) => {
+    document.body.classList.toggle('game-live', Boolean(isActive));
+};
 const $clueModal = document.getElementById('clue-modal');
 const $clueValueText = document.getElementById('clue-value-text');
 const $clueText = document.getElementById('clue-text');
@@ -311,6 +316,7 @@ const $autoTimerEnabled = document.getElementById('autoTimerEnabled');
 const $autoTimerSeconds = document.getElementById('autoTimerSeconds');
 const $autoTimerSecondsWrapper = document.getElementById('autoTimerSecondsWrapper');
 const $colorTheme = document.getElementById('colorTheme');
+const $themeSwatchGroup = document.getElementById('themeSwatches');
 const $judgeModeControls = document.getElementById('judge-mode-controls');
 const $teamNameModal = document.getElementById('team-name-modal');
 const $teamNameList = document.getElementById('team-name-list');
@@ -319,6 +325,46 @@ const $useDefaultNamesButton = document.getElementById('useDefaultNamesButton');
 const $dndNamesButton = document.getElementById('dndNamesButton');
 const $confirmNamesButton = document.getElementById('confirmNamesButton');
 const $explainAnswerButton = document.getElementById('explainAnswerButton');
+const setStartButtonState = (isEnabled) => {
+    if (!$startGameButton) return;
+    $startGameButton.disabled = !isEnabled;
+    $startGameButton.classList.toggle('cta-primary--ready', isEnabled);
+};
+
+const LOAD_STATUS_STATES = ['idle', 'success', 'error'];
+const LOAD_STATUS_DEFAULT_TEXT = {
+    idle: 'Ready to load a game',
+    success: 'Game loaded!',
+    error: 'Game load error'
+};
+
+const setLoadStatusIndicator = (state = 'idle', customText) => {
+    if (!$loadStatusIndicator || !$loadStatusText) return;
+    const normalized = LOAD_STATUS_STATES.includes(state) ? state : 'idle';
+    LOAD_STATUS_STATES.forEach(status => $loadStatusIndicator.classList.remove(`load-status--${status}`));
+    $loadStatusIndicator.classList.add(`load-status--${normalized}`);
+    $loadStatusText.textContent = customText || LOAD_STATUS_DEFAULT_TEXT[normalized];
+};
+
+setLoadStatusIndicator('idle');
+setGameActiveState(false);
+
+const SETUP_MESSAGE_VARIANTS = ['error', 'success', 'warning'];
+const setSetupMessageVariant = (variant = 'error') => {
+    if (!$setupMessage) return;
+    const normalized = SETUP_MESSAGE_VARIANTS.includes(variant) ? variant : 'error';
+    SETUP_MESSAGE_VARIANTS.forEach(v => $setupMessage.classList.remove(`setup-inline-alert--${v}`));
+    $setupMessage.classList.add(`setup-inline-alert--${normalized}`);
+};
+
+const showSetupMessage = (message, variant = 'error') => {
+    if (!$setupMessage) return;
+    if (typeof message === 'string') {
+        $setupMessage.textContent = message;
+    }
+    $setupMessage.classList.remove('hidden');
+    setSetupMessageVariant(variant);
+};
 
 const clearFinalJeopardyStatus = () => {
     if ($finalJeopardyStatus) {
@@ -451,9 +497,19 @@ const markClueAsPlayed = (clueIndex) => {
 const updateScoreboard = () => {
     // Clear previous content and styles
     $scoreboard.innerHTML = '';
-    $scoreboard.className = 'mb-2'; // Reset class list
+    const baseClasses = ['scoreboard-grid', 'mb-2'];
+    $scoreboard.className = baseClasses.join(' '); // Reset class list while keeping base styling
 
     const numTeams = TEAMS.length;
+
+    if (numTeams === 0) {
+        $scoreboard.classList.add('hidden');
+        saveGameStateToSession();
+        return;
+    }
+
+    $scoreboard.classList.remove('hidden');
+
     let gridCols = numTeams;
     if (numTeams >= 5 && numTeams <= 8) {
         gridCols = 4; // Use 4 columns for 5-8 teams
@@ -1247,8 +1303,7 @@ const setupClues = (data) => {
     clearFinalJeopardyStatus();
 
     if (!data || data.length === 0) {
-        $setupMessage.textContent = "Error: CSV data is empty or invalid.";
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage("Error: CSV data is empty or invalid.", 'error');
         return false;
     }
 
@@ -1329,8 +1384,7 @@ const setupClues = (data) => {
     const isRound2Valid = !ROUND_2_CLUES.length || roundStructures[2].valid;
 
     if (!ROUND_1_CLUES.length && !ROUND_2_CLUES.length) {
-        $setupMessage.textContent = "CSV Error: No valid clues for Round 1 or Round 2 were found in the file.";
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage("CSV Error: No valid clues for Round 1 or Round 2 were found in the file.", 'error');
         renderValidationDetails(validationRoundSummaries, {
             hint: 'No clues detected for either round. Check the header row and delimiter.',
             rowIssues
@@ -1340,16 +1394,14 @@ const setupClues = (data) => {
 
     if (!isRound1Valid) {
         const errorMsg = roundStructures[1].structureIssues.join(' ') || 'Round 1 layout is invalid.';
-        $setupMessage.textContent = `CSV Error: ${errorMsg}`;
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage(`CSV Error: ${errorMsg}`, 'error');
         renderValidationDetails(validationRoundSummaries, { hint: errorMsg, rowIssues });
         return false;
     }
 
     if (!isRound2Valid) {
         const errorMsg = roundStructures[2].structureIssues.join(' ') || 'Round 2 layout is invalid.';
-        $setupMessage.textContent = `CSV Error: ${errorMsg}`;
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage(`CSV Error: ${errorMsg}`, 'error');
         renderValidationDetails(validationRoundSummaries, { hint: errorMsg, rowIssues });
         return false;
     }
@@ -1366,13 +1418,10 @@ const setupClues = (data) => {
         const warningText = layoutWarnings.join('; ');
         const proceed = window.confirm(`This game uses a non-standard board: ${warningText}. Continue?`);
         if (!proceed) {
-            $setupMessage.textContent = 'Loading canceled because the board layout does not match the classic 5×5 format.';
-            $setupMessage.classList.remove('hidden');
+            showSetupMessage('Loading canceled because the board layout does not match the classic 5x5 format.', 'error');
             return false;
         }
-        $setupMessage.textContent = `Confirmed layout: ${warningText}`;
-        $setupMessage.classList.remove('hidden');
-        $setupMessage.classList.add('text-yellow-400');
+        showSetupMessage(`Confirmed layout: ${warningText}`, 'warning');
     }
 
     if (ROUND_1_CLUES.length > 0) {
@@ -1437,6 +1486,7 @@ const startGame = (numTeams, initialScores = [], initialBoardState = [], options
     $setupScreen.classList.add('hidden');
     $gameBoard.classList.remove('hidden');
     $gameControlsContainer.classList.remove('hidden');
+    setGameActiveState(true);
 
     updateScoreboard();
     renderBoard();
@@ -2041,9 +2091,11 @@ const loadGameStateFromSession = () => {
         if (resumeJudgeMode) {
             startJudgeMode();
         }
+        setLoadStatusIndicator('success', 'Game loaded from session');
 
     } catch (e) {
         console.error("Could not load game state from session storage:", e);
+        setLoadStatusIndicator('error', 'Game load error');
         clearSessionState(); // Clear corrupted data
     }
 };
@@ -2108,9 +2160,8 @@ const loadGameFromFile = (file) => {
 
             // 5. Setup clues with the formatted data
             if (setupClues(formattedData)) {
-                $startGameButton.disabled = false;
-                $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-                $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+                setStartButtonState(true);
+                setLoadStatusIndicator('success', 'Game loaded!');
                 
                 let roundInfo = '';
                 if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
@@ -2128,20 +2179,19 @@ const loadGameFromFile = (file) => {
                 }
 
                 const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-                $setupMessage.textContent = `Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`;
-                $setupMessage.classList.remove('hidden', 'text-red-400');
-                $setupMessage.classList.add('text-green-400');
+                showSetupMessage(`Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
             } else {
-                $startGameButton.disabled = true;
-                $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-                $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+                setStartButtonState(false);
+                setLoadStatusIndicator('error');
+                $setupMessage.classList.remove('hidden');
+                setSetupMessageVariant('error');
             }
         },
         error: function (error) {
             console.error("Papa Parse Error:", error);
-            $startGameButton.disabled = true;
-            $setupMessage.textContent = `CSV Parsing Error: ${error.message}. Ensure the file is a valid CSV.`;
-            $setupMessage.classList.remove('hidden');
+            setStartButtonState(false);
+            setLoadStatusIndicator('error', 'Game load error');
+            showSetupMessage(`CSV Parsing Error: ${error.message}. Ensure the file is a valid CSV.`, 'error');
         }
     });
 };
@@ -2215,9 +2265,8 @@ const loadDefaultGame = async () => {
     });
 
     if (setupClues(formattedData)) {
-        $startGameButton.disabled = false;
-        $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-        $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+        setStartButtonState(true);
+        setLoadStatusIndicator('success', 'Game loaded!');
 
         let roundInfo = '';
         if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
@@ -2236,23 +2285,19 @@ const loadDefaultGame = async () => {
 
         const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
         const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-        $setupMessage.textContent = `Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`;
-        $setupMessage.classList.remove('hidden', 'text-red-400');
-        $setupMessage.classList.add('text-green-400');
+        showSetupMessage(`Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
     } else {
-        $startGameButton.disabled = true;
-        $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-        $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+        setStartButtonState(false);
+        setLoadStatusIndicator('error');
         // The detailed error message is already set by setupClues(), so we just ensure it's visible.
-        $setupMessage.classList.remove('hidden', 'text-green-400');
-        $setupMessage.classList.add('text-red-400');
+        $setupMessage.classList.remove('hidden');
+        setSetupMessageVariant('error');
     }
     } catch (error) {
         console.error("Error loading default game file:", error);
-        $startGameButton.disabled = true;
-        $setupMessage.textContent = `Error: Could not load game from library. ${error.message}`;
-        $setupMessage.classList.remove('hidden');
-        $setupMessage.classList.add('text-red-400');
+        setStartButtonState(false);
+        setLoadStatusIndicator('error', 'Game load error');
+        showSetupMessage(`Error: Could not load game from library. ${error.message}`, 'error');
     }
 };
 
@@ -2489,14 +2534,12 @@ const loadSaveCode = () => {
 
         if (state.version && state.version >= 2) {
             restoreGameFromFullState(state);
-            $setupMessage.textContent = 'Save code loaded successfully.';
-            $setupMessage.classList.remove('hidden', 'text-red-400', 'text-yellow-300');
-            $setupMessage.classList.add('text-green-400');
+            showSetupMessage('Save code loaded successfully.', 'success');
+            setLoadStatusIndicator('success', 'Game loaded!');
         } else {
             restoreGameFromLegacyState(state);
-            $setupMessage.textContent = 'Legacy save code loaded (some advanced data may be missing).';
-            $setupMessage.classList.remove('hidden', 'text-green-400', 'text-red-400');
-            $setupMessage.classList.add('text-yellow-300');
+            showSetupMessage('Legacy save code loaded (some advanced data may be missing).', 'warning');
+            setLoadStatusIndicator('success', 'Game loaded!');
         }
 
         if ($loadGameModal) {
@@ -2506,9 +2549,8 @@ const loadSaveCode = () => {
 
     } catch (e) {
         console.error("Error loading save code:", e);
-        $setupMessage.textContent = "Error: Invalid or corrupt save code.";
-        $setupMessage.classList.remove('hidden', 'text-green-400', 'text-yellow-300');
-        $setupMessage.classList.add('text-red-400');
+        showSetupMessage("Error: Invalid or corrupt save code.", 'error');
+        setLoadStatusIndicator('error');
     }
 };
 
@@ -2535,8 +2577,7 @@ const downloadTemplate = async () => {
         document.body.removeChild(link);
     } catch (e) {
         console.error('Error downloading template:', e);
-        $setupMessage.textContent = 'Error downloading template file.';
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage('Error downloading template file.', 'error');
     }
 };
 
@@ -2576,8 +2617,7 @@ const downloadTemplateTSV = async () => {
         document.body.removeChild(link);
     } catch (e) {
         console.error('Error downloading TSV template:', e);
-        $setupMessage.textContent = 'Error downloading TSV template file.';
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage('Error downloading TSV template file.', 'error');
     }
 };
 
@@ -2746,15 +2786,45 @@ const applyTheme = (key) => {
     body.classList.add(`theme-${theme}`);
 };
 
+const syncThemePills = (themeKey) => {
+    if (!$themeSwatchGroup) return;
+    const pills = $themeSwatchGroup.querySelectorAll('[data-theme]');
+    pills.forEach(pill => {
+        const isActive = pill.dataset.theme === themeKey;
+        pill.classList.toggle('is-active', isActive);
+        pill.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+};
+
+if ($themeSwatchGroup && $colorTheme) {
+    $themeSwatchGroup.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-theme]');
+        if (!target) return;
+        const selectedTheme = target.dataset.theme;
+        if ($colorTheme.value !== selectedTheme) {
+            $colorTheme.value = selectedTheme;
+            const changeEvent = new Event('change', { bubbles: true });
+            $colorTheme.dispatchEvent(changeEvent);
+        } else {
+            applyTheme(selectedTheme);
+        }
+        syncThemePills(selectedTheme);
+    });
+}
+
 if ($colorTheme) {
     $colorTheme.addEventListener('change', () => {
         applyTheme($colorTheme.value);
+        syncThemePills($colorTheme.value);
     });
     // Apply initial theme from select value
-    applyTheme($colorTheme.value || 'classic');
+    const initialTheme = $colorTheme.value || 'classic';
+    applyTheme(initialTheme);
+    syncThemePills(initialTheme);
 } else {
     // Fallback to classic theme
     applyTheme('classic');
+    syncThemePills('classic');
 }
 
 // Google Sheets Help modal
@@ -2827,15 +2897,15 @@ const normalizeGoogleSheetUrl = (rawUrl) => {
 const loadFromGoogleSheet = async () => {
     const link = ($googleSheetUrlInput && $googleSheetUrlInput.value) ? $googleSheetUrlInput.value.trim() : '';
     if (!link) {
-        $setupMessage.textContent = 'Please paste a public Google Sheet link.';
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage('Please paste a public Google Sheet link.', 'error');
+        setLoadStatusIndicator('error');
         return;
     }
 
     const normalized = normalizeGoogleSheetUrl(link);
     if (!normalized) {
-        $setupMessage.textContent = 'Invalid Google Sheet link. Please use a public Google Sheets URL.';
-        $setupMessage.classList.remove('hidden');
+        showSetupMessage('Invalid Google Sheet link. Please use a public Google Sheets URL.', 'error');
+        setLoadStatusIndicator('error');
         return;
     }
 
@@ -2890,9 +2960,8 @@ const loadFromGoogleSheet = async () => {
         });
 
         if (setupClues(formattedData)) {
-            $startGameButton.disabled = false;
-            $startGameButton.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-            $startGameButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+            setStartButtonState(true);
+            setLoadStatusIndicator('success', 'Game loaded!');
 
             let roundInfo = '';
             if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) roundInfo = 'This is a 2-round game.';
@@ -2904,22 +2973,18 @@ const loadFromGoogleSheet = async () => {
 
             const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
             const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-            $setupMessage.textContent = `Loaded from Google Sheet! ${roundInfo} Detected delimiter: ${delimLabel}.`;
-            $setupMessage.classList.remove('hidden', 'text-red-400');
-            $setupMessage.classList.add('text-green-400');
+            showSetupMessage(`Loaded from Google Sheet! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
         } else {
-            $startGameButton.disabled = true;
-            $startGameButton.classList.add('bg-gray-600', 'text-gray-400', 'cursor-not-allowed');
-            $startGameButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
-            $setupMessage.classList.remove('hidden', 'text-green-400');
-            $setupMessage.classList.add('text-red-400');
+            setStartButtonState(false);
+            setLoadStatusIndicator('error');
+            $setupMessage.classList.remove('hidden');
+            setSetupMessageVariant('error');
         }
     } catch (e) {
         console.error('Error loading Google Sheet:', e);
-        $startGameButton.disabled = true;
-        $setupMessage.textContent = `Error: Could not load from Google Sheet. ${e.message}. Make sure the sheet (and tab) is public and the link includes the correct tab (gid).`;
-        $setupMessage.classList.remove('hidden');
-        $setupMessage.classList.add('text-red-400');
+        setStartButtonState(false);
+        setLoadStatusIndicator('error', 'Game load error');
+        showSetupMessage(`Error: Could not load from Google Sheet. ${e.message}. Make sure the sheet (and tab) is public and the link includes the correct tab (gid).`, 'error');
     }
 };
 
