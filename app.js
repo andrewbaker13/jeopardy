@@ -83,7 +83,7 @@ const sanitizeHTML = (html) => {
     if (!window.DOMPurify) return html;
     return DOMPurify.sanitize(html, {
         ALLOWED_TAGS: [
-            'b','i','em','strong','u','p','br','span','div','ul','ol','li','table','thead','tbody','tr','th','td','blockquote','code','pre','img','a'
+            'b','i','em','strong','u','p','br','span','div','ul','ol','li','table','thead','tbody','tr','th','td','blockquote','code','pre','img','a','mark','sub','sup','del','s','hr'
         ],
         ALLOWED_ATTR: ['href','src','alt','title','target','rel','class','style'],
         ALLOW_DATA_ATTR: false,
