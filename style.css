@@ -14,10 +14,14 @@ body {
     --hero-badge-label-bg: rgba(15, 23, 42, 0.4);
     --hero-badge-text: #f8fafc;
     --hero-status-text: #facc15;
+    --hero-bg: #111827;
     --hero-status-bg: rgba(234, 179, 8, 0.08);
     --hero-status-border: rgba(255, 255, 255, 0.15);
     --hero-scorecard-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(55, 65, 81, 0.5));
     --hero-scorecard-border: rgba(255, 255, 255, 0.08);
+    --score-card-bg: #1f2937;
+    --score-positive-text: #4ade80;
+    --score-negative-text: #f87171;
     --score-placeholder-bg: rgba(148, 163, 184, 0.12);
     --score-placeholder-border: rgba(148, 163, 184, 0.5);
     --chip-primary-color: #facc15;
@@ -71,6 +75,11 @@ body {
     --alert-border: rgba(248, 113, 113, 0.6);
     --alert-bg: rgba(248, 113, 113, 0.1);
     --alert-text: #fecaca;
+    /* New Semantic Variables */
+    --modal-bg: #1f2937;
+    --modal-border: #facc15;
+    --modal-header-text: #facc15;
+    --muted-text: #cbd5e1;
 }
 
 .sr-only {
@@ -109,10 +118,14 @@ body.theme-light {
     --hero-badge-label-bg: rgba(59, 130, 246, 0.12);
     --hero-badge-text: #0f172a;
     --hero-status-text: #1d4ed8;
+    --hero-bg: #ffffff;
     --hero-status-bg: rgba(37, 99, 235, 0.12);
     --hero-status-border: rgba(30, 64, 175, 0.25);
     --hero-scorecard-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(226, 232, 240, 0.9));
     --hero-scorecard-border: rgba(15, 23, 42, 0.08);
+    --score-card-bg: #ffffff;
+    --score-positive-text: #166534; /* Darker green for light bg */
+    --score-negative-text: #991b1b; /* Darker red for light bg */
     --score-placeholder-bg: rgba(226, 232, 240, 0.75);
     --score-placeholder-border: rgba(148, 163, 184, 0.8);
     --chip-primary-color: #1d4ed8;
@@ -166,6 +179,11 @@ body.theme-light {
     --alert-border: rgba(185, 28, 28, 0.4);
     --alert-bg: rgba(254, 226, 226, 0.85);
     --alert-text: #7f1d1d;
+    /* New Semantic Variables */
+    --modal-bg: #f3f4f6;
+    --modal-border: #d97706;
+    --modal-header-text: #d97706;
+    --muted-text: #4b5563;
 }
 
 body.theme-dark {
@@ -181,10 +199,14 @@ body.theme-dark {
     --hero-badge-label-bg: rgba(2, 6, 23, 0.65);
     --hero-badge-text: #e0e7ff;
     --hero-status-text: #c084fc;
+    --hero-bg: #020617;
     --hero-status-bg: rgba(88, 28, 135, 0.2);
     --hero-status-border: rgba(192, 132, 252, 0.4);
     --hero-scorecard-bg: linear-gradient(135deg, rgba(2, 6, 23, 0.9), rgba(15, 23, 42, 0.75));
     --hero-scorecard-border: rgba(120, 53, 15, 0.45);
+    --score-card-bg: #020617;
+    --score-positive-text: #86efac; /* Brighter green for dark bg */
+    --score-negative-text: #fca5a5; /* Brighter red for dark bg */
     --score-placeholder-bg: rgba(30, 41, 59, 0.55);
     --score-placeholder-border: rgba(148, 163, 184, 0.35);
     --chip-primary-color: #fde68a;
@@ -238,6 +260,11 @@ body.theme-dark {
     --alert-border: rgba(252, 165, 165, 0.7);
     --alert-bg: rgba(127, 29, 29, 0.4);
     --alert-text: #fee2e2;
+    /* New Semantic Variables */
+    --modal-bg: #020617;
+    --modal-border: #facc15;
+    --modal-header-text: #facc15;
+    --muted-text: #94a3b8;
 }
 
 body.theme-highcontrast {
@@ -251,10 +278,14 @@ body.theme-highcontrast {
     --hero-badge-label-bg: #ffeb3b;
     --hero-badge-text: #000000;
     --hero-status-text: #000000;
+    --hero-bg: #000000;
     --hero-status-bg: #ffeb3b;
     --hero-status-border: #ffeb3b;
     --hero-scorecard-bg: linear-gradient(135deg, #000000, #1a1a1a);
     --hero-scorecard-border: #ffeb3b;
+    --score-card-bg: #000000;
+    --score-positive-text: #00ff00; /* Bright green */
+    --score-negative-text: #ff5555; /* Bright red */
     --score-placeholder-bg: rgba(255, 255, 255, 0.08);
     --score-placeholder-border: #ffeb3b;
     --chip-primary-color: #000000;
@@ -308,74 +339,88 @@ body.theme-highcontrast {
     --alert-border: #ff5555;
     --alert-bg: rgba(255, 85, 85, 0.2);
     --alert-text: #ff5555;
+    /* New Semantic Variables */
+    --modal-bg: #000000;
+    --modal-border: #ffeb3b;
+    --modal-header-text: #ffeb3b;
+    --muted-text: #f3f4f6;
 }
 body.theme-christmas {
-    background: radial-gradient(circle at top, #064e3b 0, #022c22 40%, #010b0a 100%);
+    background: radial-gradient(circle at top, #14532d 0, #082f49 60%, #010b0a 100%);
     color: #f9fafb;
-    --text-primary: #fef9c3;
-    --text-muted: rgba(248, 250, 252, 0.75);
-    --hero-badge-bg: linear-gradient(120deg, rgba(22, 101, 52, 0.8), rgba(153, 27, 27, 0.6));
-    --hero-badge-border: rgba(249, 250, 251, 0.25);
-    --hero-badge-label-bg: rgba(21, 128, 61, 0.4);
-    --hero-badge-text: #fefcf3;
-    --hero-status-text: #fef2f2;
-    --hero-status-bg: rgba(185, 28, 28, 0.25);
-    --hero-status-border: rgba(248, 250, 252, 0.35);
-    --hero-scorecard-bg: linear-gradient(135deg, rgba(6, 78, 59, 0.85), rgba(153, 27, 27, 0.7));
-    --hero-scorecard-border: rgba(249, 250, 251, 0.2);
-    --score-placeholder-bg: rgba(15, 118, 110, 0.35);
-    --score-placeholder-border: rgba(248, 250, 252, 0.35);
-    --chip-primary-color: #fef2f2;
-    --chip-primary-border: rgba(254, 226, 226, 0.8);
-    --chip-secondary-color: #bbf7d0;
-    --chip-secondary-border: rgba(16, 185, 129, 0.6);
-    --dropzone-bg: rgba(4, 78, 59, 0.7);
-    --dropzone-border: rgba(153, 27, 27, 0.6);
-    --dropzone-hover-border: rgba(190, 18, 60, 0.85);
-    --glass-card-bg: linear-gradient(145deg, rgba(6, 47, 36, 0.95), rgba(127, 29, 29, 0.5));
-    --glass-card-border: rgba(249, 250, 251, 0.25);
-    --button-primary-start: #16a34a;
-    --button-primary-mid: #dc2626;
-    --button-primary-end: #facc15;
-    --button-primary-text: #fffaf0;
-    --button-primary-shadow: rgba(16, 185, 129, 0.35);
+    --text-primary: #fefce8; /* Creamy off-white */
+    --text-muted: #e7e5e4; /* Light stone grey */
+    --hero-badge-bg: linear-gradient(120deg, rgba(22, 101, 52, 0.8), rgba(153, 27, 27, 0.7));
+    --hero-badge-border: rgba(253, 230, 138, 0.3);
+    --hero-badge-label-bg: rgba(22, 101, 52, 0.5);
+    --hero-badge-text: #fefce8;
+    --hero-status-text: #fde68a; /* Gold */
+    --hero-bg: #042f2e; /* Very dark teal/green */
+    --hero-status-bg: rgba(253, 230, 138, 0.1);
+    --hero-status-border: rgba(253, 230, 138, 0.4);
+    --hero-scorecard-bg: linear-gradient(135deg, rgba(4, 47, 46, 0.85), rgba(127, 29, 29, 0.6));
+    --hero-scorecard-border: rgba(253, 230, 138, 0.2);
+    --score-card-bg: #022c22;
+    --score-positive-text: #bbf7d0; /* Minty green */
+    --score-negative-text: #fca5a5; /* Soft red */
+    --score-placeholder-bg: rgba(20, 83, 45, 0.35);
+    --score-placeholder-border: rgba(253, 230, 138, 0.35);
+    --chip-primary-color: #fde68a; /* Gold */
+    --chip-primary-border: rgba(253, 230, 138, 0.5);
+    --chip-secondary-color: #fca5a5; /* Light red */
+    --chip-secondary-border: rgba(220, 38, 38, 0.5);
+    --dropzone-bg: rgba(4, 47, 46, 0.7);
+    --dropzone-border: rgba(153, 27, 27, 0.7);
+    --dropzone-hover-border: rgba(220, 38, 38, 0.9);
+    --glass-card-bg: linear-gradient(145deg, rgba(4, 47, 46, 0.9), rgba(127, 29, 29, 0.5));
+    --glass-card-border: rgba(253, 230, 138, 0.25);
+    --button-primary-start: #dc2626; /* Red */
+    --button-primary-mid: #b91c1c; /* Darker Red */
+    --button-primary-end: #fde68a; /* Gold */
+    --button-primary-text: #fefce8;
+    --button-primary-shadow: rgba(220, 38, 38, 0.35);
     --button-primary-shadow-hover: rgba(220, 38, 38, 0.45);
-    --button-secondary-bg: rgba(15, 118, 110, 0.45);
-    --button-secondary-border: rgba(16, 185, 129, 0.5);
+    --button-secondary-bg: rgba(20, 83, 45, 0.45);
+    --button-secondary-border: rgba(34, 197, 94, 0.5);
     --button-secondary-text: #f0fdf4;
     --button-tertiary-bg: rgba(185, 28, 28, 0.3);
     --button-tertiary-border: rgba(239, 68, 68, 0.4);
     --button-tertiary-text: #fee2e2;
     --input-bg: rgba(1, 43, 34, 0.85);
-    --input-border: rgba(248, 250, 252, 0.15);
-    --input-text: #f8fafc;
-    --focus-ring: rgba(248, 250, 252, 0.7);
-    --focus-shadow: rgba(248, 250, 252, 0.25);
-    --label-text: #fef9c3;
+    --input-border: rgba(253, 230, 138, 0.2);
+    --input-text: #fefce8;
+    --focus-ring: rgba(253, 230, 138, 0.8);
+    --focus-shadow: rgba(253, 230, 138, 0.25);
+    --label-text: #fde68a; /* Gold */
     --step-bg: rgba(5, 46, 32, 0.85);
-    --step-border: rgba(255, 255, 255, 0.12);
-    --step-badge-color: #fef2f2;
-    --step-badge-border: rgba(254, 226, 226, 0.6);
+    --step-border: rgba(253, 230, 138, 0.15);
+    --step-badge-color: #1e293b;
+    --step-badge-border: rgba(253, 230, 138, 0.8);
     --settings-bg: rgba(5, 40, 32, 0.9);
-    --settings-border: rgba(238, 242, 255, 0.15);
-    --toggle-track-bg: rgba(15, 118, 110, 0.7);
+    --settings-border: rgba(253, 230, 138, 0.15);
+    --toggle-track-bg: rgba(20, 83, 45, 0.7);
     --toggle-thumb-bg: #03130f;
     --toggle-checked-start: #16a34a;
     --toggle-checked-end: #dc2626;
-    --theme-pill-bg: rgba(6, 47, 36, 0.85);
-    --theme-pill-border: rgba(249, 250, 251, 0.25);
-    --theme-pill-text: #fef2f2;
+    --theme-pill-bg: rgba(4, 47, 46, 0.85);
+    --theme-pill-border: rgba(253, 230, 138, 0.25);
+    --theme-pill-text: #fde68a;
     --theme-pill-active-bg: rgba(185, 28, 28, 0.3);
-    --theme-pill-active-border: rgba(254, 226, 226, 0.8);
+    --theme-pill-active-border: rgba(252, 165, 165, 0.8);
     --theme-pill-active-text: #fef2f2;
-    --theme-pill-active-shadow: rgba(239, 68, 68, 0.35);
-    --cta-ghost-border: rgba(254, 226, 226, 0.5);
-    --cta-ghost-hover-border: rgba(254, 226, 226, 0.85);
-    --cta-ghost-text: #fef2f2;
-    --cta-ghost-hover-text: #fcd34d;
-    --alert-border: rgba(252, 165, 165, 0.9);
-    --alert-bg: rgba(185, 28, 28, 0.35);
-    --alert-text: #fee2e2;
+    --theme-pill-active-shadow: rgba(220, 38, 38, 0.35);
+    --cta-ghost-border: rgba(252, 165, 165, 0.5);
+    --cta-ghost-hover-border: rgba(252, 165, 165, 0.85);
+    --cta-ghost-text: #fca5a5;
+    --cta-ghost-hover-text: #fef2f2;
+    --alert-border: rgba(253, 230, 138, 0.8);
+    --alert-bg: rgba(253, 230, 138, 0.1);
+    --alert-text: #fefce8;
+    /* New Semantic Variables */
+    --modal-bg: #022c22;
+    --modal-border: #b91c1c;
+    --modal-header-text: #fef2f2;
+    --muted-text: rgba(248, 250, 252, 0.75);
 }
 
 .font-jeopardy {
@@ -392,6 +437,7 @@ body.theme-christmas {
 #hero-panel {
     position: relative;
     overflow: hidden;
+    background-color: var(--hero-bg);
 }
 
 .hero-panel__glow {
@@ -538,9 +584,11 @@ body.game-live #hero-panel .hero-panel__scoreboard {
     margin: 0;
 }
 
-body.game-live #hero-panel .hero-panel__scoreboard-card {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+body.game-live #scoreboard {
+    /* This container should be transparent. The individual score-card elements have the themed background. */
+    background: transparent;
+    border: none;
+    padding: 1.75rem; /* Apply the padding here that was on the old outer container */
 }
 
 body:not(.game-live) .hero-panel__scoreboard {
@@ -694,64 +742,30 @@ body.theme-highcontrast .modal-overlay {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Light/Dark/Christmas overrides for common Tailwind grays & accents */
-body.theme-light .bg-gray-900,
-body.theme-light .bg-gray-800,
-body.theme-light .bg-gray-700 {
-    background-color: #e5e7eb !important;
+/* --- Daily Double Animations --- */
+@keyframes dd-flash {
+    0%, 100% { background-color: rgba(0, 0, 0, 0.85); }
+    25%, 75% { background-color: rgba(250, 204, 21, 0.25); } /* Flash with theme yellow */
 }
 
-body.theme-light .text-gray-300 {
-    color: #4b5563 !important;
+@keyframes dd-text-burst {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-body.theme-light .border-yellow-500,
-body.theme-light .text-yellow-400 {
-    border-color: #d97706 !important;
-    color: #d97706 !important;
-}
-
-body.theme-dark .bg-gray-900 {
-    background-color: #020617 !important;
-}
-
-body.theme-dark .bg-gray-800 {
-    background-color: #020617 !important;
-}
-
-body.theme-dark .bg-gray-700 {
-    background-color: #111827 !important;
-}
-
-body.theme-dark .border-yellow-500,
-body.theme-dark .text-yellow-400 {
-    border-color: #facc15 !important;
-    color: #facc15 !important;
-}
-
-body.theme-christmas .bg-gray-900,
-body.theme-christmas .bg-gray-800,
-body.theme-christmas .bg-gray-700 {
-    background-color: #022c22 !important;
-}
-
-body.theme-highcontrast .bg-gray-900,
-body.theme-highcontrast .bg-gray-800,
-body.theme-highcontrast .bg-gray-700 {
-    background-color: #000000 !important;
-}
-
-body.theme-christmas .border-yellow-500,
-body.theme-christmas .text-yellow-400 {
-    border-color: #991b1b !important;
-    color: #991b1b !important;
-}
-
-body.theme-highcontrast .border-yellow-500,
-body.theme-highcontrast .text-yellow-400 {
-    border-color: #ffeb3b !important;
-    color: #ffeb3b !important;
-}
+.dd-active { animation: dd-flash 400ms ease-in-out 2; }
+.dd-active h3 { animation: dd-text-burst 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+/* --- End Daily Double Animations --- */
 
 /* Extra Christmas styling: deep reds, dark greens, light text */
 body.theme-christmas .jeopardy-tile {
@@ -760,15 +774,6 @@ body.theme-christmas .jeopardy-tile {
 
 body.theme-christmas .jeopardy-tile:hover:not(.played) {
     background-color: #047857;
-}
-
-/* Light mode: ensure default text is dark, not white */
-body.theme-light .text-white {
-    color: #111827 !important;
-}
-
-body.theme-highcontrast .text-white {
-    color: #ffffff !important;
 }
 
 /* Game Setup main box per theme */
@@ -865,6 +870,35 @@ body.theme-highcontrast #game-title {
     color: #ffeb3b !important;
 }
 
+.score-card {
+    background-color: var(--score-card-bg);
+}
+
+.text-score-positive {
+    color: var(--score-positive-text);
+}
+
+.text-score-negative {
+    color: var(--score-negative-text);
+}
+
+/* New semantic classes that use the variables */
+.bg-modal {
+    background-color: var(--modal-bg);
+}
+
+.border-modal {
+    border-color: var(--modal-border);
+}
+
+.text-modal-header {
+    color: var(--modal-header-text);
+}
+
+.text-muted {
+    color: var(--muted-text);
+}
+
 /* Setup + controls */
 .setup-card-grid {
     display: grid;
@@ -917,6 +951,11 @@ body.theme-highcontrast #game-title {
 .dropzone:hover {
     border-color: var(--dropzone-hover-border);
     transform: translateY(-2px);
+}
+
+.dropzone.is-dragging {
+    border-color: var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-shadow);
 }
 
 .dropzone__label {

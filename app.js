@@ -402,28 +402,13 @@ const showSetupMessage = (message, variant = 'error') => {
     setSetupMessageVariant(variant);
 };
 
-const clearFinalJeopardyStatus = () => {
-    if ($finalJeopardyStatus) {
-        $finalJeopardyStatus.classList.add('hidden');
-        $finalJeopardyStatus.textContent = '';
-        $finalJeopardyStatus.classList.remove('text-green-400', 'text-red-400', 'text-gray-300');
-    }
-};
-
-const updateFinalJeopardyStatus = () => {
-    if (!$finalJeopardyStatus) return;
-    $finalJeopardyStatus.classList.remove('hidden');
+const getFinalJeopardyStatusText = () => {
     if (FINAL_JEOPARDY_CLUE) {
-        $finalJeopardyStatus.textContent = 'Final Jeopardy is available.';
-        $finalJeopardyStatus.classList.add('text-green-400');
-        $finalJeopardyStatus.classList.remove('text-gray-300', 'text-red-400');
+        return 'Final Jeopardy is available.';
     } else {
-        $finalJeopardyStatus.textContent = 'No Final Jeopardy round is configured.';
-        $finalJeopardyStatus.classList.add('text-red-400');
-        $finalJeopardyStatus.classList.remove('text-gray-300', 'text-green-400');
+        return 'No Final Jeopardy round is configured.';
     }
 };
-const $finalJeopardyStatus = document.getElementById('final-jeopardy-status');
 const $clueExplanation = document.getElementById('clue-explanation');
 const $clueExplanationText = document.getElementById('clue-explanation-text');
 
@@ -565,7 +550,7 @@ const updateScoreboard = () => {
     $scoreboard.style.gridTemplateColumns = `repeat(${gridCols}, minmax(0, 1fr))`;
 
     TEAMS.forEach((team, index) => {
-        const scoreClass = team.score >= 0 ? 'text-green-400' : 'text-red-400';
+        const scoreClass = team.score >= 0 ? 'text-score-positive' : 'text-score-negative';
         const teamCard = document.createElement('div');
         teamCard.className = `p-4 rounded-xl shadow-lg score-card`;
         const displayName = team.name && String(team.name).trim() ? team.name : `Team ${index + 1}`;
@@ -1125,6 +1110,11 @@ const openDailyDoubleWagerModal = (clueIndex) => {
     $dailyDoubleModal.classList.remove('hidden');
     $dailyDoubleModal.classList.add('flex');
 
+    // Remove the animation class after it has played to prevent re-triggering on modal resize/reflow
+    setTimeout(() => {
+        if ($dailyDoubleModal) $dailyDoubleModal.classList.remove('dd-active');
+    }, 800); // Duration should be long enough to cover the flash animation (400ms * 2)
+
     // Set up the button to reveal the clue *after* wager is set
     $revealDailyDoubleClue.onclick = () => {
         const teamIndex = parseInt($dailyDoubleTeamSelect.value);
@@ -1364,8 +1354,6 @@ const detectOptionalColumns = (headers = []) => {
 const setupClues = (data, options = {}) => {
     const { hasMCAnswersColumn = false } = options;
     $setupMessage.classList.add('hidden'); // Clear previous messages
-    renderValidationDetails(null);
-    clearFinalJeopardyStatus();
 
     if (!data || data.length === 0) {
         showSetupMessage("Error: CSV data is empty or invalid.", 'error');
@@ -1546,7 +1534,6 @@ const setupClues = (data, options = {}) => {
     }
 
     renderValidationDetails(null);
-    updateFinalJeopardyStatus();
     return true;
 };
 
@@ -2310,23 +2297,16 @@ const loadGameFromFile = (file) => {
                 setStartButtonState(true);
                 setLoadStatusIndicator('success', 'Game loaded!');
                 
-                let roundInfo = '';
-                if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
-                    roundInfo = 'This is a 2-round game.';
-                } else if (ROUND_1_CLUES.length > 0) {
-                    roundInfo = 'This is a 1-round game (Round 1).';
-                } else if (ROUND_2_CLUES.length > 0) {
-                    roundInfo = 'This is a 1-round game (Round 2).';
+                let roundInfo = 'This is a 1-round game.';
+                if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) { roundInfo = 'This is a 2-round game.';
                 } else {
-                    roundInfo = 'This is a 1-round game.';
-                }
-
-                if (FINAL_JEOPARDY_CLUE) {
-                    roundInfo += ' Final Jeopardy is available.';
+                    if (ROUND_1_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 1).';
+                    if (ROUND_2_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 2).';
                 }
 
                 const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-                showSetupMessage(`Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
+                const fjStatus = getFinalJeopardyStatusText();
+                showSetupMessage(`Game loaded successfully! ${roundInfo} ${fjStatus} Detected delimiter: ${delimLabel}.`, 'success');
             } else {
                 setStartButtonState(false);
                 setLoadStatusIndicator('error');
@@ -2419,24 +2399,17 @@ const loadDefaultGame = async () => {
         setStartButtonState(true);
         setLoadStatusIndicator('success', 'Game loaded!');
 
-        let roundInfo = '';
-        if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) {
-            roundInfo = 'This is a 2-round game.';
-        } else if (ROUND_1_CLUES.length > 0) {
-            roundInfo = 'This is a 1-round game (Round 1).';
-        } else if (ROUND_2_CLUES.length > 0) {
-            roundInfo = 'This is a 1-round game (Round 2).';
+        let roundInfo = 'This is a 1-round game.';
+        if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) { roundInfo = 'This is a 2-round game.';
         } else {
-            roundInfo = 'This is a 1-round game.';
-        }
-
-        if (FINAL_JEOPARDY_CLUE) {
-            roundInfo += ' Final Jeopardy is available.';
+            if (ROUND_1_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 1).';
+            if (ROUND_2_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 2).';
         }
 
         const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
         const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-        showSetupMessage(`Game loaded successfully! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
+        const fjStatus = getFinalJeopardyStatusText();
+        showSetupMessage(`Game loaded successfully! ${roundInfo} ${fjStatus} Detected delimiter: ${delimLabel}.`, 'success');
     } else {
         setStartButtonState(false);
         setLoadStatusIndicator('error');
@@ -2855,6 +2828,38 @@ $csvFile.addEventListener('change', (e) => {
         loadGameFromFile(e.target.files[0]);
     }
 });
+
+// --- Drag and Drop File Upload ---
+const $fileDropzone = document.getElementById('fileDropzone');
+
+if ($fileDropzone) {
+    // Prevent default browser behavior for drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        $fileDropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    // Add visual feedback for dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        $fileDropzone.addEventListener(eventName, () => $fileDropzone.classList.add('is-dragging'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        $fileDropzone.addEventListener(eventName, () => $fileDropzone.classList.remove('is-dragging'), false);
+    });
+
+    // Handle the actual file drop
+    $fileDropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+            loadGameFromFile(files[0]);
+        }
+    }, false);
+}
+
 if ($loadDefaultGameButton) $loadDefaultGameButton.addEventListener('click', loadDefaultGame);
 if ($downloadTemplate) $downloadTemplate.addEventListener('click', downloadTemplate);
 const $downloadTemplateTSV = document.getElementById('downloadTemplateTSV');
@@ -3120,18 +3125,17 @@ const loadFromGoogleSheet = async () => {
         if (setupClues(formattedData, columnPresence)) {
             setStartButtonState(true);
             setLoadStatusIndicator('success', 'Game loaded!');
-
-            let roundInfo = '';
-            if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) roundInfo = 'This is a 2-round game.';
-            else if (ROUND_1_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 1).';
-            else if (ROUND_2_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 2).';
-            else roundInfo = 'This is a 1-round game.';
-
-            if (FINAL_JEOPARDY_CLUE) roundInfo += ' Final Jeopardy is available.';
+            let roundInfo = 'This is a 1-round game.';
+            if (ROUND_1_CLUES.length > 0 && ROUND_2_CLUES.length > 0) { roundInfo = 'This is a 2-round game.';
+            } else {
+                if (ROUND_1_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 1).';
+                if (ROUND_2_CLUES.length > 0) roundInfo = 'This is a 1-round game (Round 2).';
+            }
 
             const detectedDelimiter = results && results.meta ? results.meta.delimiter : undefined;
             const delimLabel = detectedDelimiter === '\t' ? 'TAB' : (detectedDelimiter || ',');
-            showSetupMessage(`Loaded from Google Sheet! ${roundInfo} Detected delimiter: ${delimLabel}.`, 'success');
+            const fjStatus = getFinalJeopardyStatusText();
+            showSetupMessage(`Loaded from Google Sheet! ${roundInfo} ${fjStatus} Detected delimiter: ${delimLabel}.`, 'success');
         } else {
             setStartButtonState(false);
             setLoadStatusIndicator('error');
