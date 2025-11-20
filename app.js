@@ -32,7 +32,8 @@ const CSV_HEADER_MAP = {
     'mediaType': 'MediaType',
     'mediaUrl': 'MediaURL',
     'dailyDouble': 'DailyDouble',
-    'round': 'Round'
+    'round': 'Round',
+    'mcAnswers': 'MC_Answers'
 };
 const NORMALIZED_CSV_HEADERS = new Set(
     Object.values(CSV_HEADER_MAP).map(val => String(val).trim().toLowerCase())
@@ -68,6 +69,7 @@ const useDefaultGroupNames = () => {
 const MIN_TEAMS = 2;
 const MAX_TEAMS = 10;
 const EXPECTED_CLUES_PER_ROUND = 25;
+const MAX_MC_OPTIONS = 5;
 // Lightweight formatting: convert **bold** markers to <strong> tags
 const applySimpleFormatting = (text) => {
     if (typeof text !== 'string') return text;
@@ -257,8 +259,42 @@ const $gameBoard = document.getElementById('game-board');
 const $scoreboard = document.getElementById('scoreboard');
 const $loadStatusIndicator = document.getElementById('loadStatusIndicator');
 const $loadStatusText = document.getElementById('loadStatusText');
+const $mcOptionsContainer = document.getElementById('mc-options-container');
+const $mcOptionsList = document.getElementById('mc-options-list');
+const $judgeMcOptionsContainer = document.getElementById('judge-mc-options-container');
+const $judgeMcOptionsList = document.getElementById('judge-mc-options-list');
 const setGameActiveState = (isActive) => {
     document.body.classList.toggle('game-live', Boolean(isActive));
+};
+
+const normalizeClueQuestionMeta = (clue) => {
+    if (!clue || typeof clue !== 'object') return clue;
+    const mediaType = typeof clue.MediaType === 'string' ? clue.MediaType.trim().toLowerCase() : '';
+    const existingType = typeof clue.QuestionType === 'string' ? clue.QuestionType.trim().toUpperCase() : '';
+    const isMC = mediaType === 'mc' || existingType === 'MC';
+    clue.MediaType = isMC ? 'mc' : (mediaType || 'text');
+    clue.QuestionType = isMC ? 'MC' : 'STANDARD';
+    if (isMC) {
+        let options = clue.MCAnswers;
+        if (typeof options === 'string') {
+            options = options.split(';');
+        }
+        if (!Array.isArray(options)) {
+            options = [];
+        }
+        clue.MCAnswers = options
+            .map(choice => typeof choice === 'string' ? choice.trim() : '')
+            .filter(choice => choice.length)
+            .slice(0, MAX_MC_OPTIONS);
+    } else {
+        clue.MCAnswers = [];
+    }
+    return clue;
+};
+
+const normalizeClueCollection = (collection = []) => {
+    collection.forEach(normalizeClueQuestionMeta);
+    return collection;
 };
 const $clueModal = document.getElementById('clue-modal');
 const $clueValueText = document.getElementById('clue-value-text');
@@ -274,7 +310,7 @@ const $defaultGameSelect = document.getElementById('defaultGameSelect');
 const $loadDefaultGameButton = document.getElementById('loadDefaultGameButton');
 const $setupMessage = document.getElementById('setup-message');
 const $setupErrorDetails = document.getElementById('setup-error-details');
-const $advancedEditButton = document.getElementById('advancedEditButton');
+const $editScoresButton = document.getElementById('editScoresButton');
 const $dailyDoubleModal = document.getElementById('daily-double-modal');
 const $dailyDoubleTeamSelect = document.getElementById('dailyDoubleTeamSelect');
 const $dailyDoubleWager = document.getElementById('dailyDoubleWager');
@@ -432,6 +468,10 @@ const closeClueModal = () => {
     if ($explainAnswerButton) {
         $explainAnswerButton.classList.add('hidden');
     }
+    if ($mcOptionsContainer && $mcOptionsList) {
+        $mcOptionsContainer.classList.add('hidden');
+        $mcOptionsList.innerHTML = '';
+    }
     $clueMedia.innerHTML = ''; // Clear media content
     // Stop and hide any running auto-timer
     if (AUTO_TIMER_ID !== null) {
@@ -466,8 +506,11 @@ const checkForRoundCompletion = () => {
         CLUES = ROUND_2_CLUES;
         CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
         renderBoard();
+    } else if (FINAL_JEOPARDY_CLUE) {
+        // The round is over, but Final Jeopardy is available.
+        // Do nothing and wait for the user to click the Final Jeopardy button.
     } else {
-        // Game is over
+        // No more rounds and no Final Jeopardy, so the game is truly over.
         showFinalStandings();
     }
 };
@@ -959,6 +1002,13 @@ const openClue = (clueIndex) => {
           $clueAnswer.querySelector('span').textContent = clue.Answer;
       }
 
+    renderMultipleChoiceOptions(
+        clue.QuestionType === 'MC' ? clue.MCAnswers : [],
+        $mcOptionsContainer,
+        $mcOptionsList,
+        { interactive: true }
+    );
+
     // Handle Media Display
     populateClueMedia(clue);
 
@@ -1019,6 +1069,13 @@ const openClue = (clueIndex) => {
           $judgeClueText.textContent = clue.Clue;
           $judgeClueAnswer.querySelector('span').textContent = clue.Answer;
       }
+
+    renderMultipleChoiceOptions(
+        clue.QuestionType === 'MC' ? clue.MCAnswers : [],
+        $judgeMcOptionsContainer,
+        $judgeMcOptionsList,
+        { interactive: false }
+    );
 
     // Re-use the media population logic, but target the judge modal's media container
     populateClueMedia(clue, document.getElementById('judge-clue-media'));
@@ -1297,7 +1354,15 @@ const finalizeClue = () => {
  * @param {Array<Object>} data - Array of row objects from Papa Parse.
  * @returns {boolean} - True if data is valid and set up.
  */
-const setupClues = (data) => {
+const detectOptionalColumns = (headers = []) => {
+    const normalized = headers.map(header => String(header || '').trim().toLowerCase());
+    return {
+        hasMCAnswersColumn: normalized.includes('mc_answers')
+    };
+};
+
+const setupClues = (data, options = {}) => {
+    const { hasMCAnswersColumn = false } = options;
     $setupMessage.classList.add('hidden'); // Clear previous messages
     renderValidationDetails(null);
     clearFinalJeopardyStatus();
@@ -1306,6 +1371,8 @@ const setupClues = (data) => {
         showSetupMessage("Error: CSV data is empty or invalid.", 'error');
         return false;
     }
+
+    let missingRequiredMCColumn = false;
 
     const mappedClues = data.map((row, index) => {
         const trimmedCategory = String(row[CSV_HEADER_MAP.category] || '').trim();
@@ -1317,21 +1384,48 @@ const setupClues = (data) => {
             ? (rawValue || '')
             : parseInt(String(rawValue || '').replace(/[$,]/g, ''), 10) || 0;
 
+        const normalizedMediaType = String(row[CSV_HEADER_MAP.mediaType] || 'text').trim().toLowerCase();
         const clue = {
             Category: trimmedCategory,
             Value: isFinal ? (rawValue || '') : parsedValue,
             Clue: row[CSV_HEADER_MAP.clue] || '',
             Answer: row[CSV_HEADER_MAP.answer] || '',
             Explanation: row[CSV_HEADER_MAP.explanation] || '',
-            MediaType: row[CSV_HEADER_MAP.mediaType] || 'text',
+            MediaType: normalizedMediaType,
             MediaURL: row[CSV_HEADER_MAP.mediaUrl] || '',
             DailyDouble: row[CSV_HEADER_MAP.dailyDouble] || 'No',
             Round: normalizedRound,
             originalIndex: index,
-            sourceRow: row.__rowNumber || (index + 1)
+            sourceRow: row.__rowNumber || (index + 1),
+            QuestionType: 'STANDARD',
+            MCAnswers: []
         };
 
         const issues = [];
+        let hasValidMCConfig = true;
+        const isMultipleChoice = normalizedMediaType === 'mc';
+        if (isMultipleChoice) {
+            clue.QuestionType = 'MC';
+            if (!hasMCAnswersColumn) {
+                missingRequiredMCColumn = true;
+                hasValidMCConfig = false;
+            }
+            if (hasMCAnswersColumn) {
+                const rawChoices = row[CSV_HEADER_MAP.mcAnswers];
+                if (typeof rawChoices === 'string') {
+                    clue.MCAnswers = rawChoices
+                        .split(';')
+                        .map(choice => choice.trim())
+                        .filter(choice => choice.length)
+                        .slice(0, 5);
+                }
+                if (clue.MCAnswers.length < 2 || clue.MCAnswers.length > 5) {
+                    issues.push('MC clues must include between 2 and 5 answer choices separated by semicolons.');
+                    hasValidMCConfig = false;
+                }
+            }
+        }
+
         const hasValidRound = normalizedRound !== '0';
         const hasCategory = Boolean(trimmedCategory);
         const hasValue = isFinal ? Boolean(rawValue) : Boolean(parsedValue);
@@ -1352,20 +1446,30 @@ const setupClues = (data) => {
         if (issues.length) {
             clue.__reason = issues.join(' ');
         }
-        clue.__isPlayable = hasValidRound && (isFinal || (hasCategory && hasValue));
+        clue.__isPlayable = hasValidRound && (isFinal || (hasCategory && hasValue)) && hasValidMCConfig;
+        normalizeClueQuestionMeta(clue);
         return clue;
     });
+
+    if (missingRequiredMCColumn) {
+        showSetupMessage('At least one clue uses MediaType "mc", but the MC_Answers column is missing. Add MC_Answers with semicolon-separated choices (up to 5) for every MC clue.', 'error');
+        return false;
+    }
 
     const rowIssues = mappedClues
         .filter(clue => !clue.__isPlayable)
         .map(clue => `${clue.sourceRow ? `Row ${clue.sourceRow}` : 'Unknown row'}: ${clue.__reason || 'Missing required fields.'}`);
 
     FINAL_JEOPARDY_CLUE = mappedClues.find(clue => clue.Round === 'FJ' && clue.__isPlayable) || null;
+    if (FINAL_JEOPARDY_CLUE) {
+        normalizeClueQuestionMeta(FINAL_JEOPARDY_CLUE);
+    }
     const playableClues = mappedClues.filter(clue => clue.__isPlayable && clue.Round !== 'FJ');
     ALL_CLUES = playableClues;
     ALL_CLUES.forEach((clue, idx) => {
         clue.originalIndex = idx;
     });
+    normalizeClueCollection(ALL_CLUES);
 
     ROUND_1_CLUES = ALL_CLUES.filter(c => c.Round === '1');
     ROUND_2_CLUES = ALL_CLUES.filter(c => c.Round === '2');
@@ -2039,9 +2143,12 @@ const loadGameStateFromSession = () => {
         const savedState = JSON.parse(savedStateJSON);
 
         // Restore all state variables
-        ALL_CLUES = savedState.allClues;
-        ROUND_1_CLUES = savedState.round1Clues;
-        ROUND_2_CLUES = savedState.round2Clues;
+        ALL_CLUES = Array.isArray(savedState.allClues) ? savedState.allClues : [];
+        ROUND_1_CLUES = Array.isArray(savedState.round1Clues) ? savedState.round1Clues : [];
+        ROUND_2_CLUES = Array.isArray(savedState.round2Clues) ? savedState.round2Clues : [];
+        normalizeClueCollection(ALL_CLUES);
+        normalizeClueCollection(ROUND_1_CLUES);
+        normalizeClueCollection(ROUND_2_CLUES);
         CURRENT_ROUND = savedState.currentRound;
         CLUES = CURRENT_ROUND === 1 ? ROUND_1_CLUES : ROUND_2_CLUES;
         CATEGORIES = [...new Set(CLUES.map(clue => clue.Category))];
@@ -2100,6 +2207,42 @@ const loadGameStateFromSession = () => {
     }
 };
 
+const renderMultipleChoiceOptions = (choices = [], containerEl, listEl, { interactive = true } = {}) => {
+    if (!containerEl || !listEl) return;
+    if (!Array.isArray(choices) || choices.length === 0) {
+        containerEl.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+    }
+
+    containerEl.classList.remove('hidden');
+    listEl.innerHTML = '';
+
+    choices.forEach((choice, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'mc-option-button';
+        button.dataset.choiceIndex = index;
+
+        const renderedChoice = window.DOMPurify
+            ? sanitizeHTML(applySimpleFormatting(choice))
+            : choice;
+        button.innerHTML = renderedChoice || `Option ${index + 1}`;
+
+        if (interactive) {
+            button.addEventListener('click', () => {
+                listEl.querySelectorAll('.mc-option-button').forEach(btn => btn.classList.remove('is-selected'));
+                button.classList.add('is-selected');
+            });
+        } else {
+            button.setAttribute('disabled', 'disabled');
+            button.classList.add('mc-option-button--static');
+        }
+
+        listEl.appendChild(button);
+    });
+};
+
 // --- LOAD HANDLERS ---
 
 /**
@@ -2148,18 +2291,22 @@ const loadGameFromFile = (file) => {
             if (headerRowIndex === -1) headerRowIndex = nextRow; // Fallback
             const headers = data[headerRowIndex];
             const clueDataRows = data.slice(headerRowIndex + 1);
+            const columnPresence = detectOptionalColumns(headers);
 
             const formattedData = clueDataRows.map((row, idx) => {
                 const obj = {};
                 headers.forEach((header, i) => {
-                    obj[header.trim()] = row[i];
+                    const trimmedHeader = header ? header.trim() : '';
+                    const canonicalHeader = Object.values(CSV_HEADER_MAP).find(expected => expected.toLowerCase() === trimmedHeader.toLowerCase());
+                    const key = canonicalHeader || trimmedHeader;
+                    obj[key] = row[i];
                 });
                 obj.__rowNumber = headerRowIndex + 2 + idx;
                 return obj;
             });
 
             // 5. Setup clues with the formatted data
-            if (setupClues(formattedData)) {
+            if (setupClues(formattedData, columnPresence)) {
                 setStartButtonState(true);
                 setLoadStatusIndicator('success', 'Game loaded!');
                 
@@ -2254,17 +2401,21 @@ const loadDefaultGame = async () => {
     if (headerRowIndex === -1) headerRowIndex = nextRow; // Fallback
     const headers = data[headerRowIndex];
     const clueDataRows = data.slice(headerRowIndex + 1);
+    const columnPresence = detectOptionalColumns(headers);
 
     const formattedData = clueDataRows.map((row, idx) => {
         const obj = {};
         headers.forEach((header, i) => {
-            obj[header.trim()] = row[i];
+            const trimmedHeader = header ? header.trim() : '';
+            const canonicalHeader = Object.values(CSV_HEADER_MAP).find(expected => expected.toLowerCase() === trimmedHeader.toLowerCase());
+            const key = canonicalHeader || trimmedHeader;
+            obj[key] = row[i];
         });
         obj.__rowNumber = headerRowIndex + 2 + idx;
         return obj;
     });
 
-    if (setupClues(formattedData)) {
+    if (setupClues(formattedData, columnPresence)) {
         setStartButtonState(true);
         setLoadStatusIndicator('success', 'Game loaded!');
 
@@ -2311,34 +2462,29 @@ const generateSaveCode = () => {
     try {
         const title = $gameTitle ? $gameTitle.textContent : "Dr. Baker's Marketing Jeopardy-O-Matic!";
         const themeValue = $colorTheme ? $colorTheme.value : 'classic';
-        const state = {
+        // Convert state to JSON, then to Base64
+        // Use JSON.parse(JSON.stringify(...)) for a simple deep copy of the state.
+        // This ensures we save a snapshot, not references to the live game objects.
+        const jsonState = JSON.stringify({
             version: 2,
             title,
-            allClues: ALL_CLUES,
-            round1Clues: ROUND_1_CLUES,
-            round2Clues: ROUND_2_CLUES,
-            finalJeopardy: FINAL_JEOPARDY_CLUE,
-            currentRound: CURRENT_ROUND,
-            boardState: Array.isArray(BOARD_STATE) ? BOARD_STATE.slice() : [],
-            teams: TEAMS.map(team => ({ ...team })),
-            performance: PERFORMANCE_DATA,
-            judgeCode: JUDGE_CODE,
-            judgeModeActive: JUDGE_MODE_ACTIVE,
-            autoTimerEnabled: AUTO_TIMER_ENABLED,
-            autoTimerSeconds: AUTO_TIMER_SECONDS,
-            colorTheme: themeValue,
-            gameStartTime: GAME_START_TIME ? GAME_START_TIME.toISOString() : null,
-            gameEndTime: GAME_END_TIME ? GAME_END_TIME.toISOString() : null,
-            teamCount: TEAMS.length
-        };
-        // Convert state to JSON, then to Base64
-        const jsonState = JSON.stringify(state);
-        const base64State = btoa(jsonState);
+            allClues: ALL_CLUES, round1Clues: ROUND_1_CLUES, round2Clues: ROUND_2_CLUES, finalJeopardy: FINAL_JEOPARDY_CLUE,
+            currentRound: CURRENT_ROUND, boardState: BOARD_STATE, teams: TEAMS, performance: PERFORMANCE_DATA,
+            judgeCode: JUDGE_CODE, judgeModeActive: JUDGE_MODE_ACTIVE, autoTimerEnabled: AUTO_TIMER_ENABLED, autoTimerSeconds: AUTO_TIMER_SECONDS,
+            colorTheme: themeValue, gameStartTime: GAME_START_TIME, gameEndTime: GAME_END_TIME, teamCount: TEAMS.length
+        });
+        // To handle Unicode characters (emojis, special quotes, etc.), we must first
+        // encode the string to a UTF-8 format that btoa can handle.
+        const utf8String = unescape(encodeURIComponent(jsonState));
+        const base64State = btoa(utf8String);
         $saveCodeDisplay.value = base64State;
         $saveCodeDisplay.select(); // Select for easy copying
-    } catch (e) {
-        console.error("Error generating save code:", e);
-        $saveCodeDisplay.value = "Error generating code.";
+    } catch (error) {
+        console.error("Error generating save code:", error);
+        // Provide a more descriptive error message to the user.
+        // This helps diagnose issues like circular references in the state object.
+        const errorMessage = `Error generating code: ${error.message}. Check console for details.`;
+        $saveCodeDisplay.value = errorMessage;
     }
 };
 
@@ -2369,6 +2515,10 @@ const restoreGameFromFullState = (state) => {
     ROUND_1_CLUES = Array.isArray(state.round1Clues) ? state.round1Clues : [];
     ROUND_2_CLUES = Array.isArray(state.round2Clues) ? state.round2Clues : [];
     FINAL_JEOPARDY_CLUE = state.finalJeopardy || null;
+    normalizeClueCollection(ALL_CLUES);
+    normalizeClueCollection(ROUND_1_CLUES);
+    normalizeClueCollection(ROUND_2_CLUES);
+    normalizeClueQuestionMeta(FINAL_JEOPARDY_CLUE);
 
     if (ROUND_1_CLUES.length === 0 && ROUND_2_CLUES.length === 0 && ALL_CLUES.length > 0) {
         ROUND_1_CLUES = ALL_CLUES.filter(clue => String(clue.Round) === '1');
@@ -2491,7 +2641,8 @@ const restoreGameFromLegacyState = (state) => {
     const fallbackTitle = state.title || "Dr. Baker's Marketing Jeopardy-O-Matic!";
     $gameTitle.textContent = fallbackTitle;
 
-    ALL_CLUES = state.d;
+    ALL_CLUES = Array.isArray(state.d) ? state.d : [];
+    normalizeClueCollection(ALL_CLUES);
     ROUND_1_CLUES = ALL_CLUES;
     ROUND_2_CLUES = [];
     FINAL_JEOPARDY_CLUE = null;
@@ -2528,8 +2679,11 @@ const loadSaveCode = () => {
     if (!code) return;
 
     try {
-        // Convert from Base64, then parse JSON
-        const jsonState = atob(code);
+        // To correctly decode a Base64 string that might contain Unicode characters,
+        // we must reverse the encoding process used during saving.
+        const utf8String = atob(code);
+        const jsonState = decodeURIComponent(escape(utf8String));
+
         const state = JSON.parse(jsonState);
 
         if (state.version && state.version >= 2) {
@@ -2707,7 +2861,7 @@ const $downloadTemplateTSV = document.getElementById('downloadTemplateTSV');
 if ($downloadTemplateTSV) $downloadTemplateTSV.addEventListener('click', downloadTemplateTSV);
 if ($loadGameButton) $loadGameButton.addEventListener('click', loadSaveCode);
 
-if ($advancedEditButton) $advancedEditButton.addEventListener('click', openAdvancedEdit);
+if ($editScoresButton) $editScoresButton.addEventListener('click', openAdvancedEdit);
 if ($advancedSaveButton) $advancedSaveButton.addEventListener('click', saveAdvancedEdits);
 if ($advancedCancelButton) $advancedCancelButton.addEventListener('click', closeAdvancedEditModal);
 
@@ -2949,17 +3103,21 @@ const loadFromGoogleSheet = async () => {
         if (headerRowIndex === -1) headerRowIndex = nextRow;
         const headers = data[headerRowIndex];
         const clueDataRows = data.slice(headerRowIndex + 1);
+        const columnPresence = detectOptionalColumns(headers);
 
         const formattedData = clueDataRows.map((row, idx) => {
             const obj = {};
             headers.forEach((header, i) => {
-                obj[header.trim()] = row[i];
+                const trimmedHeader = header ? header.trim() : '';
+                const canonicalHeader = Object.values(CSV_HEADER_MAP).find(expected => expected.toLowerCase() === trimmedHeader.toLowerCase());
+                const key = canonicalHeader || trimmedHeader;
+                obj[key] = row[i];
             });
             obj.__rowNumber = headerRowIndex + 2 + idx;
             return obj;
         });
 
-        if (setupClues(formattedData)) {
+        if (setupClues(formattedData, columnPresence)) {
             setStartButtonState(true);
             setLoadStatusIndicator('success', 'Game loaded!');
 

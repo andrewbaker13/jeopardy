@@ -156,6 +156,7 @@
                         <li><strong>Daily Doubles:</strong> Put <code>Yes</code> in the <code>DailyDouble</code> column.</li>
                         <li><strong>Optional rows:</strong> Add <code>GameTitle</code> and <code>JudgeCode</code> before the header row.</li>
                         <li><strong>Explanation column:</strong> Use the <code>Explanation</code> column for optional teaching notes revealed after the correct response.</li>
+                        <li><strong>Question types:</strong> Set <code>MediaType</code> to <code>text</code> (default), <code>image</code>, <code>video</code>, <code>html</code>, or <code>mc</code> for multiple choice. MC clues need 2-5 semicolon-separated choices in <code>MC_Answers</code> (e.g., <code>Choice A;Choice B;Choice C</code>) and the normal <code>Answer</code> column still stores the correct response.</li>
                         <li><strong>Final Jeopardy:</strong> Add a row with <code>Category = FINAL JEOPARDY</code> and <code>Round = FJ</code>.</li>
                     </ul>
                     <p class='mt-2'><strong>Media</strong> (use <code>MediaType</code> + <code>MediaURL</code>):</p>
@@ -399,6 +400,7 @@
         <div id="game-controls-container" class="hidden mt-8 flex justify-center gap-4">
             <button id="newGameButton" class="bg-yellow-600 hover:bg-yellow-700 text-gray-900 font-bold py-2 px-4 rounded-lg transition">New Game</button>
             <button id="saveGameButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Save Game</button>
+            <button id="editScoresButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">Edit Scores</button>
             <button id="finalJeopardyButton" class="hidden bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded-lg transition">Final Jeopardy</button>
             <button id="finishGameButton" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-lg transition">Finish Game</button>
         </div>
@@ -412,6 +414,10 @@
                         <!-- Media (Image/Video) will be injected here -->
                     </div>
                     <p id="clue-text" class="text-2xl text-white font-semibold"></p>
+                    <div id="mc-options-container" class="hidden mt-6">
+                        <p class="text-sm uppercase tracking-[0.3em] text-slate-300 mb-3">Choose an answer</p>
+                        <div id="mc-options-list" class="mc-options-grid"></div>
+                    </div>
                     <p id="clue-answer" class="text-2xl text-green-400 mt-6 border-t border-gray-700 pt-4 hidden">
                         CORRECT RESPONSE: <span class="font-bold"></span>
                     </p>
@@ -508,6 +514,10 @@
                         <!-- Media (Image/Video) will be injected here -->
                     </div>
                     <p id="judge-clue-text" class="text-2xl text-white font-semibold"></p>
+                    <div id="judge-mc-options-container" class="hidden mt-6">
+                        <p class="text-sm uppercase tracking-[0.3em] text-slate-400 mb-3">Multiple Choice</p>
+                        <div id="judge-mc-options-list" class="mc-options-grid"></div>
+                    </div>
                     <p id="judge-clue-answer" class="text-2xl text-green-400 mt-6 border-t border-gray-700 pt-4">
                         CORRECT RESPONSE: <span class="font-bold"></span>
                     </p>

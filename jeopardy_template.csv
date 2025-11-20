@@ -1,93 +1,96 @@
 GameTitle,Customize Your Game Name in CSV,,,,,,,,
-JudgeCode,112233,,,,,,,
-Category,Value,Clue,Answer,Explanation,MediaType,MediaURL,DailyDouble,Round
+JudgeCode,112233,,,,,,,,
+Category,Value,Clue,Answer,Explanation,MediaType,MediaURL,DailyDouble,Round,MC_Answers
 # --- ROUND 1 ---
-CATEGORY_1,100,This is an IMAGE clue. The image appears above this text.,What is the answer?,Image clues let you discuss what details make the answer correct.,image,https://placehold.co/600x300/0d287c/ffff?text=Image+Clue,No,1
-CATEGORY_1,200,"This is a VIDEO clue (YouTube). Use the EMBED URL, not the watch URL.",What is the answer?,,video,https://www.youtube.com/embed/aqz-KE-bpKQ,No,1
-CATEGORY_1,300,This clue uses HTML to render a 2x2 table.,What is the answer?,,html,<table class='w-full text-left text-white'><tbody><tr class='border-t border-gray-600'><td class='p-2'>10</td><td class='p-2'>20</td></tr><tr class='border-t border-gray-600'><td class='p-2'>30</td><td class='p-2'>40</td></tr></tbody></table>,No,1
-CATEGORY_1,400,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_1,500,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_2,100,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_2,200,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_2,300,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_2,400,Round 1 Clue,What is the answer?,,text,,Yes,1
-CATEGORY_2,500,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_3,100,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_3,200,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_3,300,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_3,400,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_3,500,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_4,100,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_4,200,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_4,300,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_4,400,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_4,500,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_5,100,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_5,200,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_5,300,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_5,400,Round 1 Clue,What is the answer?,,text,,No,1
-CATEGORY_5,500,Round 1 Clue,What is the answer?,,text,,No,1
+CATEGORY_1,100,This is an IMAGE clue. The image appears above this text.,What is the answer?,Image clues let you discuss what details make the answer correct.,image,https://placehold.co/600x300/0d287c/ffff?text=Image+Clue,No,1,
+CATEGORY_1,200,"This is a VIDEO clue (YouTube). Use the EMBED URL, not the watch URL.",What is the answer?,,video,https://www.youtube.com/embed/aqz-KE-bpKQ,No,1,
+CATEGORY_1,300,This clue uses HTML to render a 2x2 table.,What is the answer?,,html,<table class='w-full text-left text-white'><tbody><tr class='border-t border-gray-600'><td class='p-2'>10</td><td class='p-2'>20</td></tr><tr class='border-t border-gray-600'><td class='p-2'>30</td><td class='p-2'>40</td></tr></tbody></table>,No,1,
+CATEGORY_1,400,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_1,500,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_2,100,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_2,200,This is a MULTIPLE CHOICE clue. Players pick the best option.,What is the answer?,"Explain why AIDA is the right framework (Awareness, Interest, Desire, Action).",mc,,No,1,AIDA;SWOT;Porter's Five Forces;Ansoff Matrix
+CATEGORY_2,300,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_2,400,Round 1 Clue,What is the answer?,,text,,Yes,1,
+CATEGORY_2,500,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_3,100,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_3,200,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_3,300,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_3,400,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_3,500,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_4,100,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_4,200,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_4,300,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_4,400,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_4,500,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_5,100,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_5,200,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_5,300,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_5,400,Round 1 Clue,What is the answer?,,text,,No,1,
+CATEGORY_5,500,Round 1 Clue,What is the answer?,,text,,No,1,
 # --- ROUND 2 ---
-CATEGORY_A,200,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_A,400,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_A,600,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_A,800,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_A,1000,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_B,200,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_B,400,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_B,600,Round 2 Clue,What is the answer?,,text,,Yes,2
-CATEGORY_B,800,This is a VIDEO clue (Vimeo).,What is the answer?,Videos can provide context - note why this clip supports the answer.,video,https://player.vimeo.com/video/76979871,No,2
-CATEGORY_B,1000,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_C,200,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_C,400,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_C,600,This is an IMAGE clue (example 2). The image appears above.,What is the answer?,,image,https://placehold.co/640x360/0d287c/ffff?text=Another+Image+Clue,No,2
-CATEGORY_C,800,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_C,1000,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_D,200,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_D,400,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_D,600,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_D,800,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_D,1000,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_E,200,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_E,400,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_E,600,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_E,800,Round 2 Clue,What is the answer?,,text,,No,2
-CATEGORY_E,1000,"This clue uses HTML to show formatted text, a link, and a list.",What is the answer?,,html,<div><p>This is <b>bold</b> and <i>italic</i> text with a <a href='https://www.example.com' target='_blank' rel='noopener'>link</a>.</p><ul><li>First point</li><li>Second point</li></ul></div>,No,2
+CATEGORY_A,200,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_A,400,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_A,600,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_A,800,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_A,1000,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_B,200,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_B,400,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_B,600,Round 2 Clue,What is the answer?,,text,,Yes,2,
+CATEGORY_B,800,Another MULTIPLE CHOICE example with 4 options.,What is the answer?,Reference Jerome McCarthy if you want to cite sources.,mc,,No,2,Philip Kotler;Jerome McCarthy;Michael Porter;Edward Bernays
+CATEGORY_B,1000,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_C,200,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_C,400,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_C,600,This is an IMAGE clue (example 2). The image appears above.,What is the answer?,,image,https://placehold.co/640x360/0d287c/ffff?text=Another+Image+Clue,No,2,
+CATEGORY_C,800,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_C,1000,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_D,200,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_D,400,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_D,600,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_D,800,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_D,1000,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_E,200,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_E,400,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_E,600,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_E,800,Round 2 Clue,What is the answer?,,text,,No,2,
+CATEGORY_E,1000,"This clue uses HTML to show formatted text, a link, and a list.",What is the answer?,,html,<div><p>This is <b>bold</b> and <i>italic</i> text with a <a href='https://www.example.com' target='_blank' rel='noopener'>link</a>.</p><ul><li>First point</li><li>Second point</li></ul></div>,No,2,
 # --- FINAL JEOPARDY (OPTIONAL) ---
-FINAL JEOPARDY,HISTORIC DOCUMENTS,"This document, signed in 1776, declared the 13 colonies independent from Great Britain.",What is the answer?,Use this to reinforce why the fact is historically significant.,text,,,FJ
+FINAL JEOPARDY,HISTORIC DOCUMENTS,"This document, signed in 1776, declared the 13 colonies independent from Great Britain.",What is the answer?,Use this to reinforce why the fact is historically significant.,text,,,FJ,
 # --- INSTRUCTIONS START BELOW THIS LINE ---
 # IMPORTANT: Lines starting with a '#' are ignored by the game and should be used for instructions only.
 #
 # CUSTOM GAME TITLE:
-# The very first row should start with "GameTitle" in the first column, and your desired game title in the second column.
-# Example: GameTitle "My Awesome History Game"
+"# The very first row should start with ""GameTitle"" in the first column",and your desired game title in the second column.
+"# Example: GameTitle ""My Awesome History Game"""
 #
 # ROUND STRUCTURE:
 # - The 'Round' column determines which round a clue belongs to (1 or 2).
-# - A valid game can have just Round 1, just Round 2, or both.
-# - A complete Round 1 MUST have 5 categories with values 100, 200, 300, 400, 500 for each (25 clues total).
-# - A complete Round 2 MUST have 5 categories with values 200, 400, 600, 800, 1000 for each (25 clues total).
+# - A valid game can have just Round 1,just Round 2,or both.
+# - A complete Round 1 MUST have 5 categories with values 100,200,300,400,500 for each (25 clues total).
+# - A complete Round 2 MUST have 5 categories with values 200,400,600,800,1000 for each (25 clues total).
 # - Category names MUST be identical for all 5 clues within that category for a given round.
-# - If both rounds are present, the game will automatically switch to Round 2 after all Round 1 clues are played.
+# - If both rounds are present,the game will automatically switch to Round 2 after all Round 1 clues are played.
 #
 # FINAL JEOPARDY:
-# - To add a Final Jeopardy round, create one row where the 'Category' is 'FINAL JEOPARDY' and the 'Round' is 'FJ'.
+# - To add a Final Jeopardy round,create one row where the 'Category' is 'FINAL JEOPARDY' and the 'Round' is 'FJ'.
 #
 # OTHER COLUMNS:
-# - To include commas in Clue or Answer text you MUST enclose the entire cell content in double quotes (e.g. "This answer is in fact correct").
-# - The Answer column is pre-filled with "What is the answer?" as a placeholder—replace it with your own text.
-# - The 'Explanation' column is optional. Add any extra teaching notes you want to show after the correct response (HTML is allowed, just like in Clue text).
+"# - To include commas in Clue or Answer text you MUST enclose the entire cell content in double quotes (e.g. ""This answer is in fact correct"")."
+"# - The Answer column is pre-filled with ""What is the answer?"" as a placeholder—replace it with your own text."
+# - The 'Explanation' column is optional. Add any extra teaching notes you want to show after the correct response (HTML is allowed,just like in Clue text).
 #
 # DAILY DOUBLES:
 # The 'DailyDouble' column determines if a clue is a Daily Double.
 # - Set the value to 'Yes' to make it a Daily Double.
 # - Set the value to 'No' (or leave it blank) for a normal clue.
 # MEDIA INSTRUCTIONS:
-# MediaType can be 'text' (default) 'image' 'video' or 'html'.
-# MediaURL is only required for 'image' or 'video' clues.
+# MediaType can be 'text' (default),'image','video','html',or 'mc' (multiple choice).
+# MediaURL is only required for 'image' or 'video' clues. MC clues ignore MediaURL but require entries in MC_Answers.
+#
+# MULTIPLE CHOICE (MediaType: mc):
+# Provide 2-5 answer options in the MC_Answers column,separated by semicolons (e.g.,Choice A;Choice B;Choice C). The Answer column still stores the correct response text.
 #
 # IMAGES (MediaType: image):
-# Use a publicly accessible DIRECT URL that ends in an image extension (.jpg .png etc.). 
+# Use a publicly accessible DIRECT URL that ends in an image extension (.jpg .png etc.).
 # Standard Google Drive or Dropbox *sharing* links will usually NOT work.
 #
 # VIDEOS (MediaType: video):

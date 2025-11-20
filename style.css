@@ -560,18 +560,6 @@ body.game-live #hero-panel .hero-panel__status-pill {
     justify-content: center;
 }
 
-body.game-live #scoreboard-placeholder {
-    display: none !important;
-}
-
-.pregame-only {
-    display: inherit;
-}
-
-body.game-live .pregame-only {
-    display: none !important;
-}
-
 /* Theme variations for tiles */
 body.theme-light .jeopardy-blue {
     background-color: #2563eb;
@@ -1226,6 +1214,41 @@ body.theme-highcontrast #game-title {
 
 .theme-pill__dot--contrast {
     background: linear-gradient(135deg, #000000, #ffeb3b);
+}
+
+.mc-options-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.mc-option-button {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(15, 23, 42, 0.65);
+    color: #f8fafc;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    transition: transform 0.2s ease, border 0.2s ease, background 0.2s ease;
+    min-height: 48px;
+}
+
+.mc-option-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(250, 204, 21, 0.8);
+    background: rgba(30, 64, 175, 0.45);
+}
+
+.mc-option-button.is-selected {
+    border-color: rgba(34, 197, 94, 0.8);
+    background: rgba(34, 197, 94, 0.2);
+    color: #bbf7d0;
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+}
+
+.mc-option-button--static {
+    opacity: 0.65;
+    cursor: default;
 }
 
 .setup-ctas {
